@@ -23,13 +23,13 @@ export interface Config {
 }
 
 export const config: Config = {
-  port: 4000,
-  error_with_stack: true,
+  port: process.env.BACKEND_PORT ? Number(process.env.BACKEND_PORT) : 4000,
+  error_with_stack: process.env.ERROR_WITH_STACK ? true : false,
   logs: {
-    console_level: "info",
-    file_level: "error",
-    file_maxsize: "250m",
-    file_retention: "1",
+    console_level: process.env.LOG_CONSOLE_LEVEL || "info",
+    file_level: process.env.LOG_FILE_LEVEL || "error",
+    file_maxsize: "200m",
+    file_retention: "7d",
     file_path: "./",
   },
   neo4j: {

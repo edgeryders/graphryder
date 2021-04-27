@@ -4,9 +4,8 @@
 
 The docker architecture is composed of 4 containers :
 
-* **backend :**  A REST API
+* **backend :**  A GraphQl backend
 * **frontend :**  A web application with react and an nginx server
-* **elasticsearch :** A fulltext search server
 
 == Container phylosophy
 
@@ -40,13 +39,18 @@ This is really useful in development, because as a developer, I want to have a d
 But in production, to avoid security breach, I prefer to have only one port open on the stack,
 and it's the one of the web application.
 
-== Run the stack in dev
+== Run the stack in dev mode
 
 Just run `docker-compose up` inside the project `docker` folder.
 
 NOTE: If you have many docker projects, I recommend you to use a prefix for the stack : `docker-compose -p archelec up`
 
-== Run the stack in prod
+== Run the stack in prod mode
 
-* Edit the `.env` file if you need it
-* Run the command `docker-compose -f docker-compose.yml` inside the project `docker` folder.
+* To enable the production mode, you need to change the configuration `MODE` to `prod`.
+Don't edit the `.env` file to avoid conflict on code update. Instead you can either :
+
+** (recommended) Override the `.env` variable by adding the variable into your `.bashrc` : `echo 'export MODE="prod"' >> ~/.bashrc`
+** Or make a copy of the `.env` file (like `.env.prod`) and edit it. If you do so, you must run the docker-compose command with the flag `--env-file .env.prod`
+
+* Run the command `docker-compose -f docker-compose.yml up` (or `docker-compose -f docker-compose.yml --env-file .env.prod up`) inside the project `docker` folder.

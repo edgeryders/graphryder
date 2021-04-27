@@ -1,1 +1,69 @@
 = Ryderex
+
+== How to install with docker
+
+=== Requirements
+
+To be able to install the application on your server, you will need :
+
+* docker & docker-compose
+* git
+
+On debian like system, you can install them with the following command :
+`apt-get install git docker docker-compose`
+
+=== Process
+
+* Clone the repository in the folder `/opt`
+
+`$>git clone https://github.com/edgeryders/ryderex`
+
+* Create a linux user called `ryderex`
+
+`$>useradd ryderex -d /opt/ryderex/ -M -r -s /bin/bash`
+
+* Add the created user to the group `docker`
+
+`$> usermod -aG docker ryderex`
+
+* Change the owner of the folder `/opt/ryderex`
+
+`$>chown -R ryderex:ryderex /opt/ryderex`
+
+* Add the env variable `MODE` like this: `echo 'export MODE="prod"' >> ~/.bashrc`
+
+* Create the system script service :
+
+[source,bash]
+----
+$> cd /etc/systemd/system/
+$> vi ryderex.service
+[Unit]
+Description=ryderex
+Requires=docker.service
+
+After=docker.service
+[Service]
+Restart=always
+User=ryderex
+Group=ryderex
+WorkingDirectory=/opt/ryderex/docker
+
+# Shutdown container (if running) when unit is started
+ExecStartPre=docker-compose -f docker-compose.yml down
+# Start container when unit is started
+ExecStart=docker-compose -f docker-compose.yml up
+# Stop container when unit is stopped
+ExecStop=docker-compose -f docker-compose.yml down
+
+[Install]
+WantedBy=multi-user.target
+$> sudo systemctl enable ryderex.service
+----
+
+* When it's done, you can start the stack by running this command : `systemctl start ryderex.service`
+
+TIP: You can check the log of the process with the command `journalctl -u ryderex.service`
+
+Wait some minutes (the build of the docker stack can takes ~10min), and open your favorite browser on http://localchost
+(you can replace localhost by the name/ip of your server)

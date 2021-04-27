@@ -8,8 +8,13 @@ services:
     restart: ${RESTART_POLICY}
     volumes:
       - ${PROJECT_PATH}/backend:/backend
-    env_file:
-      - ${PROJECT_PATH}/docker/.env
+    environment:
+      - BACKEND_PORT
+      - LOG_CONSOLE_LEVEL
+      - LOG_FILE_LEVEL
+      - NEO4J_URL
+      - NEO4J_LOGIN
+      - NEO4J_PASSWORD
 
   # Frontend
   frontend:
@@ -24,5 +29,3 @@ services:
     volumes:
       - ${PROJECT_PATH}/docker/frontend/nginx.${MODE}.conf:/etc/nginx/nginx.conf
       - ${PROJECT_PATH}/frontend:/frontend
-    env_file:
-      - ${PROJECT_PATH}/docker/.env
