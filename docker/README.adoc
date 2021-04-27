@@ -1,0 +1,52 @@
+= Architecture
+
+== Docker
+
+The docker architecture is composed of 4 containers :
+
+* **backend :**  A REST API
+* **frontend :**  A web application with react and an nginx server
+* **elasticsearch :** A fulltext search server
+
+== Container phylosophy
+
+The `Dockerfile` just install the system dependencies, and then call the `entrypoint.sh` bash script.
+The goal of this script is to **compile and run** the project of the container.
+
+Moreover, all the code is mounted on containers with a volume (ie. it's not part of the `Dockerfile` with a _ADD_ or a _COPY_).
+So all code modification are directly available in containers.
+
+This is usefull for development, but also in production when you need to update the stack.
+You just have to do a `git pull`, and then restart the stack, without to rebuild all the containers.
+
+You just need to rebuild containers when there is a change on :
+
+* a `Dockerfile`
+* an `entrypoint.sh`
+
+And normally, they are pretty stable.
+
+== Docker compose phylosophy
+
+There are 3 files :
+
+* **.env :** it's the environment files with all the docker variables, like _ports_, _version_, _path_, _users_, ...
+* **docker-compose.yml :** it's the main docker compose file, where all the stack is describe
+* **docker-compose.override.yml :** this docker compose file override/enhance the previous one.
+
+The override file contains only some port bindings.
+This is really useful in development, because as a developer, I want to have a direct access to the stack tools.
+
+But in production, to avoid security breach, I prefer to have only one port open on the stack,
+and it's the one of the web application.
+
+== Run the stack in dev
+
+Just run `docker-compose up` inside the project `docker` folder.
+
+NOTE: If you have many docker projects, I recommend you to use a prefix for the stack : `docker-compose -p archelec up`
+
+== Run the stack in prod
+
+* Edit the `.env` file if you need it
+* Run the command `docker-compose -f docker-compose.yml` inside the project `docker` folder.

@@ -1,0 +1,8 @@
+version: "2"
+services:
+  backend:
+    ports:
+      - ${BACKEND_PORT}:${BACKEND_PORT}
+  frontend:
+    ports:
+      - ${FRONTEND_PORT}:${FRONTEND_PORT}
