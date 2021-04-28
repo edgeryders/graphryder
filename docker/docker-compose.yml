@@ -9,6 +9,7 @@ services:
     volumes:
       - ${PROJECT_PATH}/backend:/backend
     environment:
+      - MODE
       - BACKEND_PORT
       - LOG_CONSOLE_LEVEL
       - LOG_FILE_LEVEL
@@ -29,3 +30,5 @@ services:
     volumes:
       - ${PROJECT_PATH}/docker/frontend/nginx.${MODE}.conf:/etc/nginx/nginx.conf
       - ${PROJECT_PATH}/frontend:/frontend
+    environment:
+      - MODE
