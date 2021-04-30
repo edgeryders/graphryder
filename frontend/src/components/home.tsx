@@ -1,5 +1,5 @@
 import React from "react";
 
-export const App: React.FC<{}> = () => {
+export const Home: React.FC<{}> = () => {
   return <h1>Ryderex</h1>;
 };

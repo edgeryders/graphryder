@@ -4,7 +4,7 @@ import "./scss/index.scss";
 import reportWebVitals from "./reportWebVitals";
 // Routing system
 import { BrowserRouter as Router } from "react-router-dom";
-import { Layout } from "./layout";
+import { Layout } from "./components/layout";
 import { RouterWrapper } from "./router/router";
 import { routes } from "./router/routes";
 
