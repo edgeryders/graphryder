@@ -24,8 +24,9 @@ export const Dashboard: FC<{ platform: string; corpora: string }> = ({ platform,
         .finally(() => setIsLoading(false));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [platform, corpora, queryState]);
+  }, []);
 
+  console.log("dashboard");
   return (
     <div className="dashboard">
       <div className="modules-container">

@@ -1,6 +1,7 @@
 import Graph from "graphology";
-import { memoize } from "lodash";
-import {} from "@apollo/client";
+import { cloneDeep, memoize } from "lodash";
+import gql from "graphql-tag";
+import { client } from "./client";
 
 import { QueryState } from "./queryState";
 
@@ -10,7 +11,7 @@ import { QueryState } from "./queryState";
  */
 
 export interface DatasetType {
-  // TODO
+  graph: Graph;
 }
 
 export type TableDataType = (string | number)[][];
@@ -19,10 +20,31 @@ export type TableDataType = (string | number)[][];
  * Data loading:
  * *************
  */
-
-export function loadDataset(platform: string, corpora: string, state: QueryState): Promise<DatasetType> {
-  // TODO
-  return Promise.resolve({});
+const GRAPHQL_GET_GRAPH = gql`
+  query getGraphByCorpus($platform: String!, $corpus: String!) {
+    graph: getGraphByCorpus(platform: $platform, corpus: $corpus) {
+      attributes
+      nodes {
+        key
+        attributes
+      }
+      edges {
+        key
+        source
+        target
+        attributes
+      }
+    }
+  }
+`;
+export async function loadDataset(platform: string, corpus: string, state: QueryState): Promise<DatasetType> {
+  const graph = new Graph({ multi: true, type: "directed", allowSelfLoops: true });
+  const result = await client.query({
+    query: GRAPHQL_GET_GRAPH,
+    variables: { platform, corpus },
+  });
+  graph.import(cloneDeep(result.data.graph));
+  return Promise.resolve({ graph });
 }
 
 /**
@@ -31,8 +53,7 @@ export function loadDataset(platform: string, corpora: string, state: QueryState
  */
 
 function getGraphNaive(dataset: DatasetType, options: unknown): Graph {
-  // TODO
-  return new Graph();
+  return dataset.graph;
 }
 
 function getTableDataNaive(dataset: DatasetType, options: unknown): TableDataType {

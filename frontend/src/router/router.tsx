@@ -11,16 +11,13 @@ interface Props {
 /**
  * Function that flatten tree routes recursively.
  */
-const flattenRoutes = (
-  path: string = "",
-  routes: RouteDefinition[] = []
-): Array<RouteDefinition> => {
+const flattenRoutes = (path: string = "", routes: RouteDefinition[] = []): Array<RouteDefinition> => {
   // The result
   let routesList: Array<RouteDefinition> = [];
   routes.forEach((route: RouteDefinition) => {
     // construct the route definition
     const currentRoute: RouteDefinition = {
-      path: `${path}${route.path}`
+      path: `${path}${route.path}`,
     };
     if (route.redirect) {
       currentRoute.redirect = route.redirect;
@@ -33,9 +30,7 @@ const flattenRoutes = (
     }
     // recursivity
     if (route.routes) {
-      routesList = routesList.concat(
-        flattenRoutes(currentRoute.path, route.routes)
-      );
+      routesList = routesList.concat(flattenRoutes(currentRoute.path, route.routes));
     }
     routesList.push(currentRoute);
   });
@@ -53,14 +48,7 @@ export const RouterWrapper: React.FC<Props> = (props: Props) => {
       <Switch>
         {routesFlatten.map((route: RouteDefinition) => {
           if (route.redirect) {
-            return (
-              <Redirect
-                key={route.path}
-                exact={route.exact || true}
-                path={route.path}
-                to={route.redirect}
-              />
-            );
+            return <Redirect key={route.path} exact={route.exact || true} path={route.path} to={route.redirect} />;
           } else {
             return (
               <Route
