@@ -36,5 +36,6 @@ export const config: Config = {
     url: process.env.NEO4J_URL || "bolt://localhost:7687",
     login: process.env.NEO4J_LOGIN || "neo4j",
     password: process.env.NEO4J_PASSWORD || "admin",
+    options: { disableLosslessIntegers: true },
   },
 };

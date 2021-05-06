@@ -1,8 +1,15 @@
+import GraphQLJSON, { GraphQLJSONObject } from "graphql-type-json";
 import { GraphQLResolveInfo, GraphQLObjectType } from "graphql";
 import gql from "graphql-tag";
 import { ResolverContext } from "./index";
+import { cypherToGraph } from "../utils";
 
 export const typeDefs = gql`
+  #
+  # Define custom Graphql types
+  #
+  scalar JSONObject
+
   #
   # Define GraphQl / Neo4j model
   #
@@ -224,13 +231,50 @@ export const typeDefs = gql`
     to: code!
     count: Int!
   }
+
+  #
+  # Custom types for the graph
+  #
+  type Node {
+    key: String!
+    attributes: JSONObject
+  }
+  type Edge {
+    key: String!
+    source: String!
+    target: String!
+    attributes: JSONObject
+  }
+  type Graph {
+    attributes: JSONObject
+    nodes: [Node]
+    edges: [Edge]
+  }
+
+  type Query {
+    getGraphByCorpus(platform: String!, corpus: String!): Graph
+  }
 `;
 
 export const resolvers = {
-  Query: {},
+  Query: {
+    getGraphByCorpus: async (
+      parent: GraphQLObjectType,
+      params: { platform: string; corpus: string },
+      ctx: ResolverContext,
+      resolverInfo: GraphQLResolveInfo,
+    ): Promise<any> => {
+      const graph = await cypherToGraph(ctx, "MATCH p=(n)--(m) RETURN p LIMIT 100", params);
+      graph.setAttribute("platform", params.platform);
+      graph.setAttribute("corpus", params.corpus);
+      return graph.export();
+    },
+  },
 };
 
 export const gqlConfig = {
-  query: true,
+  query: {
+    exclude: ["Node", "Edge", "Graph"],
+  },
   mutation: false,
 };
