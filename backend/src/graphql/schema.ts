@@ -199,6 +199,13 @@ export const typeDefs = gql`
     url: String!
     codes: [code] @relation(name: "ON_PLATFORM", direction: IN)
     globalusers: [globaluser] @relation(name: "HAS_ACCOUNT_ON", direction: IN)
+    corpus: [corpus_tag]
+      @cypher(
+        statement: """
+        MATCH (this)<-[:ON_PLATFORM]-(:post)-[:IN_TOPIC]->()-[:TAGGED_WITH]->(corpus:corpus)
+        RETURN DISTINCT corpus
+        """
+      )
   }
 
   type TALKED_TO @relation(name: "TALKED_TO") {
@@ -252,7 +259,7 @@ export const typeDefs = gql`
   }
 
   type Query {
-    getGraphByCorpus(platform: String!, corpus: String!): Graph
+    getGraphByCorpus(platform: String!, corpora: String!): Graph
   }
 `;
 
@@ -260,13 +267,22 @@ export const resolvers = {
   Query: {
     getGraphByCorpus: async (
       parent: GraphQLObjectType,
-      params: { platform: string; corpus: string },
+      params: { platform: string; corpora: string },
       ctx: ResolverContext,
       resolverInfo: GraphQLResolveInfo,
     ): Promise<any> => {
-      const graph = await cypherToGraph(ctx, "MATCH p=(n)--(m) RETURN p LIMIT 100", params);
+      const query = `
+      MATCH
+        (post:post)-[:ON_PLATFORM]->(platform:platform {name: $platform}),
+        (post)-[:IN_TOPIC]->()-[:TAGGED_WITH]->(corpus:corpus {name: $corpora})
+      WITH DISTINCT post
+        MATCH p1=(user)-[:CREATED]->(post)-[:IN_TOPIC]->(topic:topic)
+        OPTIONAL MATCH p2=(post)<-[:ANNOTATES]-(a:annotation)-[:REFERS_TO]->(c:code)
+        RETURN p1, p2
+        LIMIT 1000`;
+      const graph = await cypherToGraph(ctx, query, params);
       graph.setAttribute("platform", params.platform);
-      graph.setAttribute("corpus", params.corpus);
+      graph.setAttribute("corpora", params.corpora);
       return graph.export();
     },
   },

@@ -23,7 +23,6 @@ export const MyCustomGraph: React.FC<NetworkProps> = ({ graph }) => {
   const setSettings = useSetSettings();
 
   useEffect(() => {
-    console.log(graph);
     circular.assign(graph);
     loadGraph(graph);
 
@@ -75,11 +74,9 @@ export const MyCustomGraph: React.FC<NetworkProps> = ({ graph }) => {
 };
 
 export const Network: FC<NetworkProps> = ({ graph }) => {
-  console.log("hey", graph);
   return (
     <div>
-      <h3>[network component]</h3>
-      <SigmaContainer style={{ height: "500px", width: "500px" }}>
+      <SigmaContainer style={{ height: "300px" }}>
         <MyCustomGraph graph={graph} />
         <ControlsContainer position={"bottom-right"}>
           <ZoomControl />

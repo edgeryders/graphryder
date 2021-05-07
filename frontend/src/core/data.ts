@@ -12,6 +12,13 @@ import { QueryState } from "./queryState";
 
 export interface DatasetType {
   graph: Graph;
+  stats: {
+    users: number;
+    posts: number;
+    annotations: number;
+    topics: number;
+    codes: number;
+  };
 }
 
 export type TableDataType = (string | number)[][];
@@ -21,8 +28,8 @@ export type TableDataType = (string | number)[][];
  * *************
  */
 const GRAPHQL_GET_GRAPH = gql`
-  query getGraphByCorpus($platform: String!, $corpus: String!) {
-    graph: getGraphByCorpus(platform: $platform, corpus: $corpus) {
+  query getGraphByCorpus($platform: String!, $corpora: String!) {
+    graph: getGraphByCorpus(platform: $platform, corpora: $corpora) {
       attributes
       nodes {
         key
@@ -37,14 +44,28 @@ const GRAPHQL_GET_GRAPH = gql`
     }
   }
 `;
-export async function loadDataset(platform: string, corpus: string, state: QueryState): Promise<DatasetType> {
+export async function loadDataset(platform: string, corpora: string, state: QueryState): Promise<DatasetType> {
   const graph = new Graph({ multi: true, type: "directed", allowSelfLoops: true });
   const result = await client.query({
     query: GRAPHQL_GET_GRAPH,
-    variables: { platform, corpus },
+    variables: { platform, corpora },
   });
   graph.import(cloneDeep(result.data.graph));
-  return Promise.resolve({ graph });
+  const stats = {
+    users: 0,
+    posts: 0,
+    annotations: 0,
+    topics: 0,
+    codes: 0,
+  };
+  graph.forEachNode((key: string, attributes: any) => {
+    if (attributes.labels.includes("user")) stats.users++;
+    if (attributes.labels.includes("post")) stats.posts++;
+    if (attributes.labels.includes("annotation")) stats.annotations++;
+    if (attributes.labels.includes("topic")) stats.topics++;
+    if (attributes.labels.includes("code")) stats.codes++;
+  });
+  return Promise.resolve({ graph, stats });
 }
 
 /**

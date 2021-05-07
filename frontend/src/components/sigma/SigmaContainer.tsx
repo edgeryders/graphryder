@@ -37,6 +37,12 @@ export const SigmaContainer: React.FC<SigmaContainerProps> = ({
       const instance = new Sigma(new Graph(graphOptions), containerRef.current, initialSettings);
       setSigma(instance);
     }
+    return () => {
+      setSigma((instance) => {
+        if (instance) instance.kill();
+        return null;
+      });
+    };
   }, [containerRef, graphOptions, initialSettings]);
 
   return (

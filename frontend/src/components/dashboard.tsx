@@ -1,15 +1,26 @@
 import React, { FC, useEffect, useState } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useHistory } from "react-router-dom";
 
-import { queryToState } from "../core/queryState";
+import { CorpusSelection } from "./corpus/selection";
+import { Stats } from "./corpus/stats";
+import { queryToState, stateToQueryString } from "../core/queryState";
 import { Modules, ModuleType } from "../core/modules";
 import { DatasetType, loadDataset } from "../core/data";
 import { Loader } from "./loader";
+import { BoxWrapper } from "./box-wrapper";
+import { AvailableModules } from "./dashboard/available-modules";
 
 export const Dashboard: FC<{ platform: string; corpora: string }> = ({ platform, corpora }) => {
   const location = useLocation();
+  const history = useHistory();
   const query = new URLSearchParams(location.search);
   const queryState = queryToState(query);
+
+  const availableModules: Array<ModuleType & { key: string }> = Object.keys(Modules)
+    .filter((key) => !queryState.modules.includes(key))
+    .map((key) => {
+      return { ...Modules[key], key };
+    });
 
   const [dataset, setDataset] = useState<DatasetType | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -26,31 +37,49 @@ export const Dashboard: FC<{ platform: string; corpora: string }> = ({ platform,
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  console.log("dashboard");
   return (
-    <div className="dashboard">
-      <div className="modules-container">
-        {queryState.modules.map((moduleID) => {
-          const module = Modules[moduleID] as ModuleType;
-          let content: JSX.Element | null = null;
+    <>
+      <CorpusSelection platform={platform} corpora={corpora} />
 
-          if (!dataset) {
-            content = <Loader />;
-          } else {
-            const props = module.getProps(queryState, dataset);
-            const Component = module.component;
-            content = <Component {...props} />;
-          }
+      {dataset && <Stats stats={dataset.stats} />}
 
-          return (
-            <div className="module-wrapper" key={moduleID}>
+      {queryState.modules.map((moduleID) => {
+        const module = Modules[moduleID] as ModuleType;
+        let content: JSX.Element | null = null;
+
+        if (!dataset) {
+          content = <Loader />;
+        } else {
+          const props = module.getProps(queryState, dataset);
+          const Component = module.component;
+          content = <Component {...props} />;
+        }
+
+        return (
+          <BoxWrapper
+            key={moduleID}
+            onRemove={() => {
+              queryState.modules = queryState.modules.filter((key) => key !== moduleID);
+              history.push({ search: stateToQueryString(queryState) });
+            }}
+          >
+            <div className="module-wrapper">
               <h2>{module.title}</h2>
               {content}
             </div>
-          );
-        })}
-      </div>
+          </BoxWrapper>
+        );
+      })}
+
+      <AvailableModules
+        modules={availableModules}
+        onClick={(module: ModuleType & { key: string }) => {
+          queryState.modules.push(module.key);
+          history.push({ search: stateToQueryString(queryState) });
+        }}
+      />
+
       {error && <div className="error">{error?.message || "Something went wrong..."}</div>}
-    </div>
+    </>
   );
 };

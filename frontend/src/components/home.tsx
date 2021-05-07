@@ -1,6 +1,6 @@
 import React from "react";
+import { CorpusSelection } from "./corpus/selection";
 
 export const Home: React.FC<{}> = () => {
-  console.log("home");
-  return <h1>Ryderex</h1>;
+  return <CorpusSelection />;
 };

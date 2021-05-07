@@ -4,10 +4,8 @@ import config from "./config";
 
 // Apollo Client
 export const client = new ApolloClient({
-  // Provide required constructor fields
   cache: new InMemoryCache(),
   uri: config.graphql.http,
-
   queryDeduplication: false,
   defaultOptions: {
     watchQuery: {

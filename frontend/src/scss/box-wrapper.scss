@@ -1,0 +1,9 @@
+.box-wrapper {
+  position: relative;
+
+  .btn-close {
+    position: absolute;
+    top: $spacer/2;
+    right: $spacer/2;
+  }
+}

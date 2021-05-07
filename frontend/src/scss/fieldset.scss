@@ -1,0 +1,12 @@
+fieldset {
+  border: $border-width solid $border-color;
+  border-radius: $border-radius;
+
+  legend {
+    float: none;
+    width: auto;
+    padding: 0 5px;
+    font-size: $font-size-sm;
+    margin-bottom: 0;
+  }
+}
