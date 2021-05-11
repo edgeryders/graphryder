@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import FA2LayoutSupervisor, { FA2LayoutSupervisorParameters } from "graphology-layout-forceatlas2/worker";
-import { useSigma } from "./hooks";
+import { useSigma } from "../hooks";
 
 interface Props {
   /**

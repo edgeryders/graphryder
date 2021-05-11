@@ -1,25 +1,29 @@
+import { CameraState, MouseCoords } from "sigma/types";
+import { NodeKey } from "graphology-types";
 import { useSigma, useRegisterEvents, useLoadGraph, useSetSettings } from "./hooks";
-import { ForceAtlasControl } from "./ForceAtlasControl";
 import { SigmaContainer } from "./SigmaContainer";
-import { ZoomControl } from "./ZoomControl";
-import { ControlsContainer } from "./ControlsContainer";
+import { ControlsContainer } from "./controls/ControlsContainer";
+import { ForceAtlasControl } from "./controls/ForceAtlasControl";
+import { ZoomControl } from "./controls/ZoomControl";
+import { FullScreenControl } from "./controls/FullScreenControl";
 
 export interface EventHandlers {
-  clickNode: (e: any) => void;
-  rightClickNode: (e: any) => void;
-  downNode: (e: any) => void;
-  leaveNode: (e: any) => void;
-  enterNode: (e: any) => void;
-  clickStage: (e: any) => void;
-  rightClickStage: (e: any) => void;
-  downStage: (e: any) => void;
+  clickNode: (e: { node: NodeKey; event: MouseCoords }) => void;
+  rightClickNode: (e: { node: NodeKey; event: MouseCoords }) => void;
+  downNode: (e: { node: NodeKey; event: MouseCoords }) => void;
+  leaveNode: (e: { node: NodeKey }) => void;
+  enterNode: (e: { node: NodeKey }) => void;
+  clickStage: (e: { event: MouseCoords }) => void;
+  rightClickStage: (e: { event: MouseCoords }) => void;
+  downStage: (e: { event: MouseCoords }) => void;
   kill: () => void;
-  cameraUpdated: (e: any) => void;
+  cameraUpdated: (e: CameraState) => void;
 }
 
 export {
   ControlsContainer,
   ForceAtlasControl,
+  FullScreenControl,
   SigmaContainer,
   ZoomControl,
   useSigma,

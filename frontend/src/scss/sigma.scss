@@ -39,6 +39,16 @@ div.react-sigma-v2 {
   width: 100%;
   position: relative;
 
+  &.fullscreen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100% !important;
+    width: 100% !important;
+    background-color: #fff;
+    z-index: 1500;
+  }
+
   div.sigma-container {
     height: 100%;
     width: 100%;
@@ -82,19 +92,32 @@ div.react-sigma-v2 {
     .react-sigma-control-zoom-center {
       @extend .react-sigma-control-btn;
       > button {
-        background-image: url("./icons/expand-solid.svg");
+        background-image: url("./icons/dot-circle-regular.svg?encoding=base64");
       }
     }
     .react-sigma-control-zoom-in {
       @extend .react-sigma-control-btn;
       > button {
-        background-image: url("./icons/plus-solid.svg");
+        background-image: url("./icons/plus-solid.svg?encoding=base64");
       }
     }
     .react-sigma-control-zoom-out {
       @extend .react-sigma-control-btn;
       > button {
-        background-image: url("./icons/minus-solid.svg");
+        background-image: url("./icons/minus-solid.svg?encoding=base64");
+      }
+    }
+
+    .react-sigma-control-fullscreen {
+      @extend .react-sigma-control-btn;
+      > button {
+        background-image: url("./icons/expand-solid.svg?encoding=base64");
+      }
+    }
+    .react-sigma-control-normalscreen {
+      @extend .react-sigma-control-btn;
+      > button {
+        background-image: url("./icons/compress-solid.svg?encoding=base64");
       }
     }
 
@@ -103,7 +126,7 @@ div.react-sigma-v2 {
 
       &.running {
         > button {
-          background-image: url("./icons/stop-solid.svg");
+          background-image: url("./icons/stop-solid.svg?encoding=base64");
           background-size: 40%;
           &:after {
             content: "";
@@ -113,7 +136,7 @@ div.react-sigma-v2 {
             height: $control-size;
             top: 0;
             left: 0;
-            background-image: url("./icons/spinner-solid.svg");
+            background-image: url("./icons/spinner-solid.svg?encoding=base64");
             animation: rotation 1.2s linear infinite;
           }
         }
