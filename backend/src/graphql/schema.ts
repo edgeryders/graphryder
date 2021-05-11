@@ -3,6 +3,7 @@ import { GraphQLResolveInfo, GraphQLObjectType } from "graphql";
 import gql from "graphql-tag";
 import { ResolverContext } from "./index";
 import { cypherToGraph } from "../utils";
+import { config } from "../config";
 
 export const typeDefs = gql`
   #
@@ -277,12 +278,19 @@ export const resolvers = {
         (post)-[:IN_TOPIC]->()-[:TAGGED_WITH]->(corpus:corpus {name: $corpora})
       WITH DISTINCT post
         MATCH p1=(user)-[:CREATED]->(post)-[:IN_TOPIC]->(topic:topic)
-        OPTIONAL MATCH p2=(post)<-[:ANNOTATES]-(a:annotation)-[:REFERS_TO]->(c:code)
-        RETURN p1, p2
-        LIMIT 1000`;
+        OPTIONAL MATCH p2=(post)<-[:ANNOTATES]-(a:annotation)-[:REFERS_TO]->(c:code)-[:COOCCURS*0..1 {corpus:$corpora}]-(c2)
+        RETURN p1, p2`;
       const graph = await cypherToGraph(ctx, query, params);
       graph.setAttribute("platform", params.platform);
       graph.setAttribute("corpora", params.corpora);
+      graph.forEachNode((node, attr) => {
+        Object.keys(config.graph_style).forEach((label) => {
+          if (attr.labels.includes(label)) {
+            graph.setNodeAttribute(node, "color", config.graph_style[label].color);
+            graph.setNodeAttribute(node, "label", attr["properties"][config.graph_style[label].label_field]);
+          }
+        });
+      });
       return graph.export();
     },
   },

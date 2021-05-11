@@ -1,5 +1,14 @@
 .modules {
   .add {
+    color: $white;
+    margin: $spacer;
+
+    &:first-child {
+      margin-left: 0;
+    }
+    &:last-child {
+      margin-right: 0;
+    }
     h4 {
       color: $white;
     }

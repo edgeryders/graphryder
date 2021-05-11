@@ -35,49 +35,52 @@ export const Dashboard: FC<{ platform: string; corpora: string }> = ({ platform,
         .finally(() => setIsLoading(false));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
+  }, [platform, corpora]);
   return (
     <>
       <CorpusSelection platform={platform} corpora={corpora} />
+      {isLoading && <Loader />}
+      {!isLoading && (
+        <>
+          {dataset && <Stats stats={dataset.stats} />}
 
-      {dataset && <Stats stats={dataset.stats} />}
+          {queryState.modules.map((moduleID) => {
+            const module = Modules[moduleID] as ModuleType;
+            let content: JSX.Element | null = null;
 
-      {queryState.modules.map((moduleID) => {
-        const module = Modules[moduleID] as ModuleType;
-        let content: JSX.Element | null = null;
+            if (!dataset) {
+              content = <Loader />;
+            } else {
+              const props = module.getProps(queryState, dataset);
+              const Component = module.component;
+              content = <Component {...props} />;
+            }
 
-        if (!dataset) {
-          content = <Loader />;
-        } else {
-          const props = module.getProps(queryState, dataset);
-          const Component = module.component;
-          content = <Component {...props} />;
-        }
+            return (
+              <BoxWrapper
+                key={moduleID}
+                onRemove={() => {
+                  queryState.modules = queryState.modules.filter((key) => key !== moduleID);
+                  history.push({ search: stateToQueryString(queryState) });
+                }}
+              >
+                <div className="module-wrapper">
+                  <h2>{module.title}</h2>
+                  {content}
+                </div>
+              </BoxWrapper>
+            );
+          })}
 
-        return (
-          <BoxWrapper
-            key={moduleID}
-            onRemove={() => {
-              queryState.modules = queryState.modules.filter((key) => key !== moduleID);
+          <AvailableModules
+            modules={availableModules}
+            onClick={(module: ModuleType & { key: string }) => {
+              queryState.modules.push(module.key);
               history.push({ search: stateToQueryString(queryState) });
             }}
-          >
-            <div className="module-wrapper">
-              <h2>{module.title}</h2>
-              {content}
-            </div>
-          </BoxWrapper>
-        );
-      })}
-
-      <AvailableModules
-        modules={availableModules}
-        onClick={(module: ModuleType & { key: string }) => {
-          queryState.modules.push(module.key);
-          history.push({ search: stateToQueryString(queryState) });
-        }}
-      />
+          />
+        </>
+      )}
 
       {error && <div className="error">{error?.message || "Something went wrong..."}</div>}
     </>

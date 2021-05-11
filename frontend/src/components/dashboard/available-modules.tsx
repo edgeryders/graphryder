@@ -13,7 +13,7 @@ export const AvailableModules: React.FC<Props> = ({ modules, onClick }) => {
         <BoxWrapper
           key={module.key}
           bgColor={module.color}
-          className="d-flex  flex-column justify-content-around align-items-center text-white add  me-1 ms-1"
+          className="d-flex  flex-column justify-content-around align-items-center add"
         >
           <h4>{module.title}</h4>
           <p>{module.description}</p>

@@ -1,4 +1,4 @@
-import React, { FC, useEffect } from "react";
+import React, { FC, useEffect, useState } from "react";
 import Graph from "graphology";
 import { circular } from "graphology-layout";
 import {
@@ -21,6 +21,7 @@ export const MyCustomGraph: React.FC<NetworkProps> = ({ graph }) => {
   const registerEvents = useRegisterEvents();
   const loadGraph = useLoadGraph();
   const setSettings = useSetSettings();
+  const [hoveredNode, setHoveredNode] = useState<string | null>(null);
 
   useEffect(() => {
     circular.assign(graph);
@@ -28,47 +29,30 @@ export const MyCustomGraph: React.FC<NetworkProps> = ({ graph }) => {
 
     // Register the events
     registerEvents({
-      enterNode: (event) => {
-        const graph = sigma.getGraph();
-        graph.updateEachNodeAttributes((node: any, attr: any) => {
-          return { ...attr, background: true, highlighted: false };
-        });
-        graph.setNodeAttribute(event.node, "background", false);
-        graph.setNodeAttribute(event.node, "highlighted", true);
-        graph.setNodeAttribute(event.node, "selected", true);
-        graph.forEachNeighbor(event.node, (node, data) => {
-          graph.setNodeAttribute(node, "background", false);
-          graph.setNodeAttribute(node, "highlighted", true);
-        });
-        sigma.refresh();
-      },
-      leaveNode: (event) => {
-        const graph = sigma.getGraph();
-        graph.updateEachNodeAttributes((node: any, attr: any) => {
-          attr.highlighted = false;
-          attr.background = false;
-          attr.selected = false;
-          return attr;
-        });
-        sigma.refresh();
-      },
+      enterNode: (event) => setHoveredNode(event.node),
+      leaveNode: (event) => setHoveredNode(null),
     });
+  }, []);
 
+  useEffect(() => {
     setSettings({
       nodeReducer: (node: any, data: any) => {
-        if (data.background) return { ...data, color: "#eee", label: "" };
-        data.size = 5;
-        return data;
+        const graph = sigma.getGraph();
+        const newData = { ...data, size: Math.log(graph.degree(node)), highlighted: false };
+        if (hoveredNode) {
+          if (node === hoveredNode || graph.neighbors(hoveredNode).includes(node)) newData.highlighted = true;
+          else newData.color = "#E2E2E2";
+        }
+        return newData;
       },
       edgeReducer: (edge: any, data: any) => {
         const graph = sigma.getGraph();
-        const nodes = graph.extremities(edge).map((node) => graph.getNodeAttributes(node));
-        if (nodes && (nodes[0].background || nodes[1].background)) return { ...data, hidden: true };
-        if (nodes && (nodes[0].selected || nodes[1].selected)) return { ...data, color: "#000", hidden: false };
-        return { ...data, color: "#aaa", hidden: false };
+        const newData = { ...data, hidden: false };
+        if (hoveredNode && !graph.extremities(edge).includes(hoveredNode)) newData.hidden = true;
+        return newData;
       },
     });
-  }, []);
+  }, [hoveredNode]);
 
   return null;
 };
@@ -76,7 +60,10 @@ export const MyCustomGraph: React.FC<NetworkProps> = ({ graph }) => {
 export const Network: FC<NetworkProps> = ({ graph }) => {
   return (
     <div>
-      <SigmaContainer style={{ height: "300px" }}>
+      <SigmaContainer
+        style={{ height: "300px" }}
+        graphOptions={{ multi: true, type: "directed", allowSelfLoops: true }}
+      >
         <MyCustomGraph graph={graph} />
         <ControlsContainer position={"bottom-right"}>
           <ZoomControl />

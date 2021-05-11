@@ -18,7 +18,7 @@ export const Modules: Record<string, ModuleType> = {
   cn: {
     id: "codesNetworks",
     title: "Codes network",
-    description: "",
+    description: "Explore how the code are related to each other.",
     color: "#C90303",
     component: Network,
     getProps: (state, dataset): NetworkProps => ({
@@ -52,7 +52,7 @@ export const Modules: Record<string, ModuleType> = {
     }),
   },
   ctl: {
-    id: "coontentList",
+    id: "contentList",
     title: "Content list",
     description:
       "Explores the posts and topics in the conversation, filtered by your selections of codes and participants",

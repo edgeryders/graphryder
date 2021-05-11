@@ -15,11 +15,19 @@ interface ConfigNeo4j {
   options?: { [key: string]: string | boolean | number };
 }
 
+export interface GraphStyle {
+  [label: string]: {
+    color: string;
+    label_field: string;
+  };
+}
+
 export interface Config {
   port: number;
   error_with_stack: boolean;
   logs: ConfigLog;
   neo4j: ConfigNeo4j;
+  graph_style: GraphStyle;
 }
 
 export const config: Config = {
@@ -37,5 +45,27 @@ export const config: Config = {
     login: process.env.NEO4J_LOGIN || "neo4j",
     password: process.env.NEO4J_PASSWORD || "admin",
     options: { disableLosslessIntegers: true },
+  },
+  graph_style: {
+    code: {
+      color: "#C90303",
+      label_field: "name",
+    },
+    user: {
+      color: "#00CA00",
+      label_field: "username",
+    },
+    post: {
+      color: "#423204",
+      label_field: "topic_title",
+    },
+    topic: {
+      color: "#F98E24",
+      label_field: "title",
+    },
+    annotation: {
+      color: "#23b3d7",
+      label_field: "text",
+    },
   },
 };

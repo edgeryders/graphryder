@@ -25,6 +25,7 @@ export const ForceAtlasControl: React.FC<Props> = ({ settings, autoRunFor }) => 
   const [fa2IsRunning, setFa2IsRunning] = useState<boolean>(false);
 
   useEffect(() => {
+    console.log("hey");
     if (sigma) {
       // Create the FA2 worker
       const nFa2 = new FA2LayoutSupervisor(sigma.getGraph(), settings ? settings : {});
