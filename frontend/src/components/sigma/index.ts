@@ -6,6 +6,7 @@ import { ControlsContainer } from "./controls/ControlsContainer";
 import { ForceAtlasControl } from "./controls/ForceAtlasControl";
 import { ZoomControl } from "./controls/ZoomControl";
 import { FullScreenControl } from "./controls/FullScreenControl";
+import { DegreeFilter } from "./controls/DegreeFilter";
 
 export interface EventHandlers {
   clickNode: (e: { node: NodeKey; event: MouseCoords }) => void;
@@ -22,6 +23,7 @@ export interface EventHandlers {
 
 export {
   ControlsContainer,
+  DegreeFilter,
   ForceAtlasControl,
   FullScreenControl,
   SigmaContainer,

@@ -65,7 +65,7 @@ export const CorpusSelection: React.FC<Props> = ({ platform, corpora }) => {
     return () => {
       document.removeEventListener("click", hideDropDown);
     };
-  }, []);
+  }, [platform, corpora]);
 
   return (
     <BoxWrapper>

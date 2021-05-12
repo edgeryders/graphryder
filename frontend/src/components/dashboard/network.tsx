@@ -1,10 +1,10 @@
 import React, { FC, useEffect, useState } from "react";
-import { CameraState, MouseCoords } from "sigma/types";
 import { NodeKey } from "graphology-types";
 import Graph from "graphology";
 import { circular } from "graphology-layout";
 import {
   ControlsContainer,
+  DegreeFilter,
   ForceAtlasControl,
   FullScreenControl,
   SigmaContainer,
@@ -35,7 +35,7 @@ export const MyCustomGraph: React.FC<NetworkProps> = ({ graph }) => {
       enterNode: (event: { node: NodeKey }) => setHoveredNode(`${event.node}`),
       leaveNode: (event: { node: NodeKey }) => setHoveredNode(null),
     });
-  }, []);
+  }, [graph, loadGraph, registerEvents]);
 
   useEffect(() => {
     setSettings({
@@ -55,7 +55,7 @@ export const MyCustomGraph: React.FC<NetworkProps> = ({ graph }) => {
         return newData;
       },
     });
-  }, [hoveredNode]);
+  }, [hoveredNode, setSettings, sigma]);
 
   return null;
 };
@@ -72,6 +72,9 @@ export const Network: FC<NetworkProps> = ({ graph }) => {
           <ZoomControl />
           <FullScreenControl />
           <ForceAtlasControl autoRunFor={2000} />
+        </ControlsContainer>
+        <ControlsContainer position={"bottom-left"}>
+          <DegreeFilter />
         </ControlsContainer>
       </SigmaContainer>
     </div>

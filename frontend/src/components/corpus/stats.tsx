@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React from "react";
 import { DatasetType } from "../../core/data";
 import { BoxWrapper } from "./../box-wrapper";
 

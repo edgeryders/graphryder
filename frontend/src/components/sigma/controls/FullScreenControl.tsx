@@ -23,7 +23,7 @@ export const FullScreenControl: React.FC<Props> = () => {
         sigma.refresh();
       }
     }
-  }, [isFullScreen, useSigma]);
+  }, [containerRef, isFullScreen, sigma]);
 
   return (
     <>
