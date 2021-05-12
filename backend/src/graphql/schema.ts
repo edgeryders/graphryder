@@ -274,18 +274,22 @@ export const resolvers = {
     ): Promise<any> => {
       const query = `
       MATCH
-        (post:post)-[:ON_PLATFORM]->(platform:platform {name: $platform}),
-        (post)-[:IN_TOPIC]->()-[:TAGGED_WITH]->(corpus:corpus {name: $corpora})
-      WITH DISTINCT post
-        MATCH p1=(user)-[:CREATED]->(post)-[:IN_TOPIC]->(topic:topic)
-        OPTIONAL MATCH p2=(post)<-[:ANNOTATES]-(a:annotation)-[:REFERS_TO]->(c:code)-[:COOCCURS*0..1 {corpus:$corpora}]-(c2)
-        RETURN p1, p2`;
+        (platform:platform {name: $platform}),
+        (corpus:corpus {name: $corpora})
+      WITH platform, [(corpus)<-[:TAGGED_WITH]-(topic:topic) | topic] as topics
+        MATCH
+        	p1=(post:post)-[:ON_PLATFORM]->(platform),
+          p2=(post)-[:IN_TOPIC]->(topic:topic),
+        	p3=(post)<-[:CREATED]-(user:user),
+          p4=(post)<-[:ANNOTATES*0..1]-(a:annotation)-[:REFERS_TO*0..1]->(c:code)
+        WHERE topic IN topics
+        RETURN p1, p2, p3, p4, [(c)-[r:COOCCURS]->(c2) | [r, c2]]`;
       const graph = await cypherToGraph(ctx, query, params);
       graph.setAttribute("platform", params.platform);
       graph.setAttribute("corpora", params.corpora);
       graph.forEachNode((node, attr) => {
         Object.keys(config.graph_style).forEach((label) => {
-          if (attr.labels.includes(label)) {
+          if (attr.labels && attr.labels.includes(label)) {
             graph.setNodeAttribute(node, "color", config.graph_style[label].color);
             graph.setNodeAttribute(node, "label", attr["properties"][config.graph_style[label].label_field]);
           }
