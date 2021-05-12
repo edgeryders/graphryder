@@ -35,7 +35,7 @@ export const MyCustomGraph: React.FC<NetworkProps> = ({ graph }) => {
       enterNode: (event: { node: NodeKey }) => setHoveredNode(`${event.node}`),
       leaveNode: (event: { node: NodeKey }) => setHoveredNode(null),
     });
-  }, [graph, loadGraph, registerEvents]);
+  }, []);
 
   useEffect(() => {
     setSettings({
