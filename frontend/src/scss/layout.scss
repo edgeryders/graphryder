@@ -1,9 +1,13 @@
 #app-wrapper {
   header {
     margin-bottom: $spacer;
+    height: $header-height;
   }
 
   footer {
     margin-top: $spacer;
+  }
+  .full-height {
+    height: calc(100vh - #{$header-height} - #{$spacer});
   }
 }

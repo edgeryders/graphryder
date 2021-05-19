@@ -20,7 +20,7 @@ export const routes: RouteDefinition[] = [
         component: Home,
       },
       {
-        path: "/dashboard/:platform/:corpora",
+        path: "/dashboard/:platform/:corpus",
         exact: true,
         component: Dashboard,
       },

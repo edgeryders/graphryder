@@ -10,6 +10,7 @@ export interface ModuleType {
   title: string;
   description: string;
   color: string;
+  visible: boolean;
   component: ComponentType<any>;
   getProps(state: QueryState, dataset: DatasetType): unknown;
 }
@@ -21,6 +22,7 @@ export const Modules: Record<string, ModuleType> = {
     description: "Explore how the code are related to each other.",
     color: "#C90303",
     component: Network,
+    visible: false,
     getProps: (state, dataset): NetworkProps => ({
       graph: getGraph(dataset, {
         /*TODO*/
@@ -33,6 +35,7 @@ export const Modules: Record<string, ModuleType> = {
     description: "Explore how the participants of this conversation have interacted with each other.",
     color: "#00CA00",
     component: Network,
+    visible: false,
     getProps: (state, dataset): NetworkProps => ({
       graph: getGraph(dataset, {
         /*TODO*/
@@ -45,6 +48,7 @@ export const Modules: Record<string, ModuleType> = {
     description: "Explores the codes used to annotates this conversation and to which topics they have been applied",
     color: "#B60DFF",
     component: Table,
+    visible: false,
     getProps: (state, dataset): TableProps => ({
       data: getTableData(dataset, {
         /*TODO*/
@@ -58,6 +62,7 @@ export const Modules: Record<string, ModuleType> = {
       "Explores the posts and topics in the conversation, filtered by your selections of codes and participants",
     color: "#F98E24",
     component: Table,
+    visible: false,
     getProps: (state, dataset): TableProps => ({
       data: getTableData(dataset, {
         /*TODO*/
