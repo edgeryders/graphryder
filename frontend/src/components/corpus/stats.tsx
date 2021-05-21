@@ -1,19 +1,25 @@
 import React from "react";
+import config from "../../core/config";
 import { DatasetType } from "../../core/data";
-import { BoxWrapper } from "./../box-wrapper";
+import { ModelType } from "../../types";
 
 interface StatsBoxProps {
-  icon: string;
+  model: ModelType;
   stat: number;
-  name: string;
+  verb?: string;
 }
-const StatsBox: React.FC<StatsBoxProps> = ({ icon, stat, name }) => {
+const StatsElement: React.FC<StatsBoxProps> = ({ model, stat, verb }) => {
+  const label = model.label + (stat > 0 ? "s" : "");
   return (
-    <BoxWrapper className="col-2 d-flex flex-column align-items-center">
-      <i className={`fas fa-${icon}`}></i>
-      <span className="fs-2">{stat}</span>
-      <span>{name}</span>
-    </BoxWrapper>
+    <span className="d-flex  align-items-center">
+      <span className="fs-2" style={{ marginRight: "0.5rem", color: model.color }}>
+        {stat}
+      </span>
+      <span style={{ marginRight: "0.5rem", color: model.color }}>
+        <i className={`fas fa-${model.icon}`} title={label}></i> <small>{label}</small>
+      </span>
+      {verb && <span style={{ marginRight: "0.5rem" }}>{verb}</span>}
+    </span>
   );
 };
 
@@ -23,12 +29,14 @@ interface StatsProps {
 
 export const Stats: React.FC<StatsProps> = ({ stats }) => {
   return (
-    <div className="d-flex justify-content-between">
-      <StatsBox icon="user-alt" name="Contributors" stat={stats.users} />
-      <StatsBox icon="file-alt" name="Posts" stat={stats.posts} />
-      <StatsBox icon="pencil-alt" name="Annotations" stat={stats.annotations} />
-      <StatsBox icon="question" name="Topics" stat={stats.topics} />
-      <StatsBox icon="code" name="Codes" stat={stats.codes} />
-    </div>
+    <>
+      <div className="d-flex justify-content-start flex-wrap">
+        <StatsElement model={config.models.code} stat={stats.codes} verb="used in" />
+        <StatsElement model={config.models.annotation} stat={stats.annotations} verb="describes" />
+        <StatsElement model={config.models.post} stat={stats.posts} verb="in" />
+        <StatsElement model={config.models.topic} stat={stats.topics} verb="written by" />
+        <StatsElement model={config.models.user} stat={stats.users} />
+      </div>
+    </>
   );
 };
