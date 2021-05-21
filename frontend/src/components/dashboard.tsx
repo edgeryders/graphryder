@@ -1,4 +1,4 @@
-import React, { FC, useEffect, useState } from "react";
+import React, { FC, ReactElement, useEffect, useState } from "react";
 import { useLocation, useHistory } from "react-router-dom";
 
 import { Stats } from "./corpus/stats";
@@ -34,6 +34,36 @@ export const Dashboard: FC<{ platform: string; corpus: string }> = ({ platform, 
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [platform, corpus]);
+
+  const renderModule = (module: ModuleType): ReactElement => {
+    let content: JSX.Element | null = null;
+
+    if (!dataset) {
+      content = <Loader />;
+    } else {
+      const props = module.getProps(queryState, dataset);
+      const Component = module.component;
+      content = <Component {...props} />;
+    }
+    return (
+      <BoxWrapper
+        key={module.id}
+        onRemove={() => {
+          queryState.modules = queryState.modules.filter((key) => key !== module.id);
+          history.push({ search: stateToQueryString(queryState) });
+        }}
+      >
+        <div className="module-wrapper">
+          <h2>{module.title}</h2>
+          {content}
+        </div>
+      </BoxWrapper>
+    );
+  };
+  const modules = queryState.modules.map((moduleID) => Modules[moduleID] as ModuleType);
+  const networkModules = modules.filter((m) => m.component.name === "Network");
+  const otherModules = modules.filter((m) => m.component.name !== "Network");
+
   return (
     <>
       <Header platform={platform} corpus={corpus} />
@@ -58,33 +88,10 @@ export const Dashboard: FC<{ platform: string; corpus: string }> = ({ platform, 
             </div>
           </div>
           <div className="col-9 d-flex flex-column full-height">
-            {queryState.modules.map((moduleID) => {
-              const module = Modules[moduleID] as ModuleType;
-              let content: JSX.Element | null = null;
-
-              if (!dataset) {
-                content = <Loader />;
-              } else {
-                const props = module.getProps(queryState, dataset);
-                const Component = module.component;
-                content = <Component {...props} />;
-              }
-              return (
-                <BoxWrapper
-                  key={moduleID}
-                  onRemove={() => {
-                    queryState.modules = queryState.modules.filter((key) => key !== moduleID);
-                    history.push({ search: stateToQueryString(queryState) });
-                  }}
-                  className={module.component.name}
-                >
-                  <div className="module-wrapper">
-                    <h2>{module.title}</h2>
-                    {content}
-                  </div>
-                </BoxWrapper>
-              );
-            })}
+            {networkModules.length > 0 && (
+              <div className="network-modules">{networkModules.map((m) => renderModule(m))}</div>
+            )}
+            {otherModules.length > 0 && <div className="other-modules">{otherModules.map((m) => renderModule(m))}</div>}
           </div>
         </div>
       )}

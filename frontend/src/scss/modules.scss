@@ -1,3 +1,22 @@
+.network-modules {
+  display: flex;
+  flex-grow: 2;
+  .box-wrapper {
+    flex-grow: 1;
+  }
+  .box-wrapper:not(:last-child) {
+    margin-right: 1em;
+  }
+}
+.other-modules {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  .box-wrapper {
+    flex-grow: 1;
+  }
+}
+
 .modules {
   .add {
     color: $white;
@@ -16,5 +35,13 @@
       color: $white;
       background-color: rgba(0, 0, 0, 0.4);
     }
+  }
+}
+
+.module-wrapper {
+  height: 100%;
+  h2 {
+    box-sizing: border-box;
+    height: $module-header-height;
   }
 }

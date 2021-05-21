@@ -62,21 +62,16 @@ export const MyCustomGraph: React.FC<NetworkProps> = ({ graph }) => {
 
 export const Network: FC<NetworkProps> = ({ graph }) => {
   return (
-    <div>
-      <SigmaContainer
-        style={{ height: "300px" }}
-        graphOptions={{ multi: true, type: "directed", allowSelfLoops: true }}
-      >
-        <MyCustomGraph graph={graph} />
-        <ControlsContainer position={"bottom-right"}>
-          <ZoomControl />
-          <FullScreenControl />
-          <ForceAtlasControl autoRunFor={2000} />
-        </ControlsContainer>
-        <ControlsContainer position={"bottom-left"}>
-          <DegreeFilter />
-        </ControlsContainer>
-      </SigmaContainer>
-    </div>
+    <SigmaContainer graphOptions={{ multi: true, type: "directed", allowSelfLoops: true }}>
+      <MyCustomGraph graph={graph} />
+      <ControlsContainer position={"bottom-right"}>
+        <ZoomControl />
+        <FullScreenControl />
+        <ForceAtlasControl autoRunFor={2000} />
+      </ControlsContainer>
+      <ControlsContainer position={"bottom-left"}>
+        <DegreeFilter />
+      </ControlsContainer>
+    </SigmaContainer>
   );
 };
