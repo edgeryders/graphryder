@@ -26,8 +26,9 @@
     .head {
       border-radius: 5px 5px 0 0;
     }
-    .rounded-bottom-only {
-      border-radius: 0px 0px 5px 5px !important;
+    .platform-corpus-selection {
+      border-radius: 0px 0px 5px 5px;
+      background-color: white;
     }
   }
   footer {

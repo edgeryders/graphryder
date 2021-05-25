@@ -72,7 +72,7 @@ export const CorpusSelection: React.FC<Props> = ({ platform, corpora }) => {
   }, [platform, corpora]);
 
   return (
-    <BoxWrapper className="rounded-bottom-only">
+    <div className="platform-corpus-selection p-3 shadow-sm mb-3">
       <div className="container-fluid">
         <div className="row">
           <div className="d-flex flex-column">
@@ -158,6 +158,6 @@ export const CorpusSelection: React.FC<Props> = ({ platform, corpora }) => {
           </div>
         </div>
       </div>
-    </BoxWrapper>
+    </div>
   );
 };
