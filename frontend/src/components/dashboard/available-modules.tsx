@@ -19,13 +19,13 @@ export const AvailableModules: React.FC<Props> = ({ modules, onSelect }) => {
             <input
               className="form-check-input"
               type="checkbox"
-              id="flexSwitchCheckDefault"
+              id={module.key}
               checked={module.visible}
               onChange={() => onSelect(module)}
               style={{ backgroundColor: module.model.color }}
             />
 
-            <label className="form-check-label" htmlFor="flexSwitchCheckDefault">
+            <label className="form-check-label" htmlFor={module.key}>
               <h4>
                 <i
                   className={`${icones[module.component.name] || ""}`}
