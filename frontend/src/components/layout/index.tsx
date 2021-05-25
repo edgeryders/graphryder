@@ -6,7 +6,7 @@ import { Footer } from "./footer";
 export const Layout: React.FC<{}> = ({ children }) => {
   return (
     <>
-      <main className="container-fluid">{children}</main>
+      <main>{children}</main>
     </>
   );
 };

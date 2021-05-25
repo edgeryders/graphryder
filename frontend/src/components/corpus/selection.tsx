@@ -31,7 +31,8 @@ export const CorpusSelection: React.FC<Props> = ({ platform, corpora }) => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [dataset, setDataset] = useState<Array<PlatformWithCorpus>>([]);
   // Is the drop-down for platform is opened ?
-  const [showDropDown, setShowDropDown] = useState<boolean>(false);
+  const [showPlatformDropDown, setShowPlatformDropDown] = useState<boolean>(false);
+  const [showCorporaDropDown, setShowCorporaDropDown] = useState<boolean>(false);
   // The select items
   const [selectedPlatform, setPlatform] = useState<PlatformWithCorpus | null>(null);
   const [selectedCorpora, setCorpora] = useState<string | null>(null);
@@ -59,7 +60,10 @@ export const CorpusSelection: React.FC<Props> = ({ platform, corpora }) => {
       })
       .finally(() => setIsLoading(false));
 
-    const hideDropDown = () => setShowDropDown(false);
+    const hideDropDown = () => {
+      setShowPlatformDropDown(false);
+      setShowCorporaDropDown(false);
+    };
     document.addEventListener("click", hideDropDown);
 
     return () => {
@@ -68,34 +72,28 @@ export const CorpusSelection: React.FC<Props> = ({ platform, corpora }) => {
   }, [platform, corpora]);
 
   return (
-    <BoxWrapper>
+    <BoxWrapper className="rounded-bottom-only">
       <div className="container-fluid">
         <div className="row">
-          <div className="col-6">
-            {selectedPlatform && (
-              <>
-                <h4>Platform: {selectedPlatform.url}</h4>
-                <p>
-                  You are viewing posts, annotations and users from this plateform. You can select others platforms in
-                  the Edgeryders Communities
-                </p>
-              </>
-            )}
-
-            <h4>Select new data</h4>
-            <div className="bg-light bg-gradient d-flex align-items-center justify-content-center p-2 w-75 mx-auto">
-              <span className="fw-bolder m-3">Plateform</span>
+          <div className="d-flex flex-column">
+            <div>
+              Choose a Edgeryders Communities platform and corpus to explore its posts, annotations and participants.
+              <br />A corpus is a thematic collection of conversations (posts created by participants on topics) which
+              has been annotated with qualitative codes.
+            </div>
+            <div className="d-flex align-items-center mt-2">
+              <span className="fw-bolder m-3">Platform</span>
               <div className="dropdown">
                 <button
                   className="btn btn-secondary dropdown-toggle"
                   onClick={(e) => {
-                    setShowDropDown(!showDropDown);
+                    setShowPlatformDropDown(!showPlatformDropDown);
                     e.stopPropagation();
                   }}
                 >
                   {selectedPlatform ? selectedPlatform.name : "Select a platform"}
                 </button>
-                <ul className={`dropdown-menu ${showDropDown ? "show" : ""}`}>
+                <ul className={`dropdown-menu ${showPlatformDropDown ? "show" : ""}`}>
                   {dataset.map((item) => (
                     <li key={item.name}>
                       <button
@@ -107,7 +105,7 @@ export const CorpusSelection: React.FC<Props> = ({ platform, corpora }) => {
                           }
                         }}
                       >
-                        {item.name}
+                        {item.name} - {item.url}
                       </button>
                     </li>
                   ))}
@@ -116,39 +114,47 @@ export const CorpusSelection: React.FC<Props> = ({ platform, corpora }) => {
             </div>
           </div>
 
-          {selectedPlatform && (
-            <div className="col-6">
-              <h4>Corpora {selectedCorpora ? `: ${selectedCorpora}` : ""}</h4>
-              <p>
-                You are viewing posts in these "corpora". A corpus is a collection of annotated pots that belongs to a
-                particular set of conversations on the platform.
-              </p>
-              <fieldset>
-                <legend>Corpora</legend>
-                {selectedPlatform.corpus.map((item) => (
-                  <button
-                    key={item.name}
-                    type="button"
-                    className={`m-1 btn ${selectedCorpora === item.name ? "btn-secondary" : "btn-light"}`}
-                    onClick={() => setCorpora(item.name)}
-                  >
-                    {item.name}
-                  </button>
-                ))}
-              </fieldset>
+          <div className="d-flex align-items-center">
+            <span className="fw-bolder m-3">&nbsp;&nbsp;Corpus</span>
+            <div className="dropdown">
+              <button
+                className="btn btn-secondary dropdown-toggle"
+                onClick={(e) => {
+                  setShowCorporaDropDown(!showCorporaDropDown);
+                  e.stopPropagation();
+                }}
+                disabled={!selectedPlatform || selectedPlatform.corpus.length === 0}
+              >
+                {selectedCorpora ? selectedCorpora : "Select a corpus"}
+              </button>
+              {selectedPlatform && (
+                <ul className={`dropdown-menu ${showCorporaDropDown ? "show" : ""}`}>
+                  {selectedPlatform.corpus.map((item) => (
+                    <li key={item.name}>
+                      <button
+                        className="dropdown-item"
+                        onClick={() => {
+                          if (selectedCorpora !== item.name) {
+                            setCorpora(item.name);
+                          }
+                        }}
+                      >
+                        {item.name}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
-          )}
-        </div>
-
-        <div className="row mt-3">
-          <div className="col-12 d-flex justify-content-end">
-            <Link
-              className={`btn btn-primary ${!selectedCorpora ? "disabled" : ""}`}
-              to={`/dashboard/${selectedPlatform?.name}/${selectedCorpora}`}
-              title="Load data"
-            >
-              Load data
-            </Link>
+            <div className="ms-5">
+              <Link
+                className={`btn btn-primary ${!selectedCorpora ? "disabled" : ""}`}
+                to={`/dashboard/${selectedPlatform?.name}/${selectedCorpora}`}
+                title="Load data"
+              >
+                Load Corpus
+              </Link>
+            </div>
           </div>
         </div>
       </div>

@@ -1,9 +1,35 @@
 #app-wrapper {
   header {
+    font-size: 1.5rem;
     margin-bottom: $spacer;
     height: $header-height;
+    #go-home {
+      color: white;
+      text-decoration: none;
+    }
+  }
+  .head {
+    padding-left: 0.5em;
+    color: white;
+    background-color: $primary;
+    border-left: 12px solid $secondary;
+    margin-bottom: 0;
   }
 
+  .home {
+    display: flex;
+    height: 100vh;
+    > div {
+      width: 100%;
+      margin: auto 0;
+    }
+    .head {
+      border-radius: 5px 5px 0 0;
+    }
+    .rounded-bottom-only {
+      border-radius: 0px 0px 5px 5px !important;
+    }
+  }
   footer {
     margin-top: $spacer;
   }

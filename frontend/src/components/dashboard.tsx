@@ -67,36 +67,40 @@ export const Dashboard: FC<{ platform: string; corpus: string }> = ({ platform, 
   return (
     <>
       <Header platform={platform} corpus={corpus} />
-      {isLoading && <Loader />}
-      {!isLoading && (
-        <div className="row">
-          <div className="col-3 d-flex flex-column">
-            <div>{dataset && <Stats stats={dataset.stats} />}</div>
-            <div>
-              <AvailableModules
-                modules={availableModules}
-                onSelect={(module: ModuleType & { key: string }) => {
-                  if (queryState.modules.find((key) => key === module.key)) {
-                    queryState.modules = queryState.modules.filter((key) => key !== module.key);
-                    history.push({ search: stateToQueryString(queryState) });
-                  } else {
-                    queryState.modules.push(module.key);
-                    history.push({ search: stateToQueryString(queryState) });
-                  }
-                }}
-              />
+      <div className="container-fluid">
+        {isLoading && <Loader />}
+        {!isLoading && (
+          <div className="row">
+            <div className="col-3 d-flex flex-column">
+              <div>{dataset && <Stats stats={dataset.stats} />}</div>
+              <div>
+                <AvailableModules
+                  modules={availableModules}
+                  onSelect={(module: ModuleType & { key: string }) => {
+                    if (queryState.modules.find((key) => key === module.key)) {
+                      queryState.modules = queryState.modules.filter((key) => key !== module.key);
+                      history.push({ search: stateToQueryString(queryState) });
+                    } else {
+                      queryState.modules.push(module.key);
+                      history.push({ search: stateToQueryString(queryState) });
+                    }
+                  }}
+                />
+              </div>
+            </div>
+            <div className="col-9 d-flex flex-column full-height">
+              {networkModules.length > 0 && (
+                <div className="network-modules">{networkModules.map((m) => renderModule(m))}</div>
+              )}
+              {otherModules.length > 0 && (
+                <div className="other-modules">{otherModules.map((m) => renderModule(m))}</div>
+              )}
             </div>
           </div>
-          <div className="col-9 d-flex flex-column full-height">
-            {networkModules.length > 0 && (
-              <div className="network-modules">{networkModules.map((m) => renderModule(m))}</div>
-            )}
-            {otherModules.length > 0 && <div className="other-modules">{otherModules.map((m) => renderModule(m))}</div>}
-          </div>
-        </div>
-      )}
+        )}
 
-      {error && <div className="error">{error?.message || "Something went wrong..."}</div>}
+        {error && <div className="error">{error?.message || "Something went wrong..."}</div>}
+      </div>
     </>
   );
 };
