@@ -65,7 +65,7 @@ export const config: Config = {
     },
     annotation: {
       color: "#23b3d7",
-      label_field: "text",
+      label_field: "discourse_id",
     },
   },
 };
