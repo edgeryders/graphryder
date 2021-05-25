@@ -48,23 +48,23 @@ export const config: Config = {
   },
   graph_style: {
     code: {
-      color: "#C90303",
+      color: "#0292D5",
       label_field: "name",
     },
     user: {
-      color: "#00CA00",
+      color: "#6AD74D",
       label_field: "username",
     },
     post: {
-      color: "#423204",
+      color: "#EA37B0",
       label_field: "topic_title",
     },
     topic: {
-      color: "#F98E24",
+      color: "#555555",
       label_field: "title",
     },
     annotation: {
-      color: "#23b3d7",
+      color: "#555555",
       label_field: "discourse_id",
     },
   },
