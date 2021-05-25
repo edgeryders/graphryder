@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { NodeKey } from "graphology-types";
 import { useSigma } from "../hooks";
 
 interface Props {}
@@ -11,7 +12,7 @@ export const DegreeFilter: React.FC<Props> = () => {
 
   useEffect(() => {
     const graph = sigma.getGraph();
-    graph.forEachNode((node) => {
+    graph.forEachNode((node: NodeKey) => {
       if (graph.degree(node) < value) graph.setNodeAttribute(node, "hidden", true);
       else graph.setNodeAttribute(node, "hidden", false);
     });

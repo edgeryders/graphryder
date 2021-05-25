@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
 import { Sigma } from "sigma";
+import { Settings } from "sigma/settings";
 import Graph from "graphology";
 import { useSigmaContext } from "./context";
 import { EventHandlers } from "./index";
+import { isEqual } from "lodash";
 
 export function useSigma(): Sigma {
   return useSigmaContext().sigma;
@@ -36,13 +38,15 @@ export function useRegisterEvents(): (eventHandlers: Partial<EventHandlers>) => 
       }
       // cleanup
       return () => {
-        let event: keyof typeof eventHandlers;
-        for (event in eventHandlers) {
-          const eventHandler = eventHandlers[event] as (...args: any[]) => void;
-          if (event === "cameraUpdated") {
-            sigma.getCamera().removeListener(event, eventHandler);
-          } else {
-            sigma.removeListener(event, eventHandler);
+        if (sigma) {
+          let event: keyof typeof eventHandlers;
+          for (event in eventHandlers) {
+            const eventHandler = eventHandlers[event] as (...args: any[]) => void;
+            if (event === "cameraUpdated") {
+              sigma.getCamera().removeListener(event, eventHandler);
+            } else {
+              sigma.removeListener(event, eventHandler);
+            }
           }
         }
       };
@@ -52,25 +56,30 @@ export function useRegisterEvents(): (eventHandlers: Partial<EventHandlers>) => 
   return setEventHandlers;
 }
 
-export function useSetSettings(): (settings: any) => void {
+export function useSetSettings(): (newSettings: Partial<Settings>) => void {
   const sigma = useSigma();
-  const [settings, setSettings] = useState<any>({});
+  const [settings, setSettings] = useState<Partial<Settings>>({});
 
   useEffect(() => {
     if (sigma && settings) {
-      const prevSettings: any = {};
+      const prevSettings: Partial<Settings> = {};
 
-      Object.keys(settings).forEach((key) => {
-        prevSettings[key] = sigma.getSetting(key as any);
-        sigma.setSetting(key as any, settings[key]);
+      Object.keys(settings).forEach((name: string) => {
+        const key = name as keyof Settings;
+        prevSettings[key] = sigma.getSetting(key) as any;
+        sigma.setSetting(key, settings[key] as any);
       });
 
-      // cleanup
-      return () => {
-        Object.keys(prevSettings).forEach((key) => {
-          sigma.setSetting(key as any, prevSettings[key]);
-        });
-      };
+      // // cleanup
+      // return () => {
+      //   if (sigma) {
+      //     Object.keys(prevSettings).forEach((name) => {
+      //       const key = name as keyof Settings;
+      //       console.log("cleanup", key, prevSettings[key]);
+      //       sigma.setSetting(key, prevSettings[key] as any);
+      //     });
+      //   }
+      // };
     }
   }, [sigma, settings]);
 
