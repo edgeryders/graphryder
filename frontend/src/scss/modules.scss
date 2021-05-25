@@ -1,47 +1,35 @@
 .network-modules {
   display: flex;
-  flex-grow: 2;
+  flex: 2;
   .box-wrapper {
-    flex-grow: 1;
-  }
-  .box-wrapper:not(:last-child) {
-    margin-right: 1em;
+    flex: 1;
   }
 }
 .other-modules {
   display: flex;
   flex-direction: column;
-  flex-grow: 1;
+  flex: 1;
   .box-wrapper {
-    flex-grow: 1;
+    flex: 1;
   }
 }
 
 .modules {
-  .add {
-    color: $white;
-    margin: $spacer;
-
-    &:first-child {
-      margin-left: 0;
-    }
-    &:last-child {
-      margin-right: 0;
-    }
-    h4 {
-      color: $white;
-    }
-    button {
-      color: $white;
-      background-color: rgba(0, 0, 0, 0.4);
-    }
+  .box-wrapper {
+    margin-left: 1em;
   }
 }
 
 .module-wrapper {
   height: 100%;
-  h2 {
+  .title {
     box-sizing: border-box;
     height: $module-header-height;
+    padding: 0rem 3rem 0 0.5rem;
+    border-bottom: 2px solid $primary;
+    display: flex;
+    h2 {
+      margin: auto 0 auto 0;
+    }
   }
 }

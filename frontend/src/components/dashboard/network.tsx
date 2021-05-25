@@ -6,7 +6,6 @@ import {
   ControlsContainer,
   DegreeFilter,
   ForceAtlasControl,
-  FullScreenControl,
   SigmaContainer,
   ZoomControl,
   useSigma,
@@ -66,7 +65,6 @@ export const Network: FC<NetworkProps> = ({ graph }) => {
       <MyCustomGraph graph={graph} />
       <ControlsContainer position={"bottom-right"}>
         <ZoomControl />
-        <FullScreenControl />
         <ForceAtlasControl autoRunFor={2000} />
       </ControlsContainer>
       <ControlsContainer position={"bottom-left"}>

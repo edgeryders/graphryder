@@ -1,5 +1,6 @@
-import React from "react";
-
+import React, { useState } from "react";
+import { BiFullscreen, BiExitFullscreen } from "react-icons/bi";
+import { AiOutlineClose } from "react-icons/ai";
 interface Props {
   id?: string;
   className?: string;
@@ -9,13 +10,30 @@ interface Props {
 
 export const BoxWrapper: React.FC<Props> = (props: React.PropsWithChildren<Props>) => {
   const { id, bgColor, className, children, onRemove } = props;
+  const [fullscreen, setFullscreen] = useState<boolean>(false);
   return (
     <div
       id={id}
       style={{ backgroundColor: bgColor ? bgColor : "#FFF" }}
-      className={`box-wrapper rounded p-3 shadow-sm mb-3 ${className}`}
+      className={`box-wrapper rounded shadow-sm mb-3 ${className} ${fullscreen ? "fullscreen" : ""}`}
     >
-      {onRemove && <button type="button" className="btn-close" aria-label="Close" onClick={onRemove}></button>}
+      <div className="box-actions">
+        <button
+          type="button"
+          className="btn btn-fullscreen"
+          aria-label="Fullscreen"
+          onClick={() => setFullscreen(!fullscreen)}
+        >
+          <i>{fullscreen ? <BiExitFullscreen /> : <BiFullscreen />}</i>
+        </button>
+        {onRemove && !fullscreen && (
+          <button type="button" className="btn" aria-label="Close" onClick={onRemove}>
+            <i>
+              <AiOutlineClose />
+            </i>
+          </button>
+        )}
+      </div>
       {children}
     </div>
   );

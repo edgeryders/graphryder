@@ -54,7 +54,9 @@ export const Dashboard: FC<{ platform: string; corpus: string }> = ({ platform, 
         }}
       >
         <div className="module-wrapper">
-          <h2>{module.title}</h2>
+          <div className="title">
+            <h2>{module.title}</h2>
+          </div>
           {content}
         </div>
       </BoxWrapper>
@@ -88,7 +90,7 @@ export const Dashboard: FC<{ platform: string; corpus: string }> = ({ platform, 
                 />
               </div>
             </div>
-            <div className="col-9 d-flex flex-column full-height">
+            <div className="col-9 d-flex flex-column full-height modules">
               {networkModules.length > 0 && (
                 <div className="network-modules">{networkModules.map((m) => renderModule(m))}</div>
               )}

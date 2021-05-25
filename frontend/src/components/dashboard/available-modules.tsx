@@ -1,13 +1,15 @@
 import { ModuleType } from "../../core/modules";
-
+import { ImTable2 } from "react-icons/im";
+import { BiNetworkChart } from "react-icons/bi";
+import { ReactElement } from "react";
 interface Props {
   modules: Array<ModuleType & { key: string }>;
   onSelect: (e: ModuleType & { key: string }) => void;
 }
 
-const icones: { [key: string]: string } = {
-  Network: "fas fa-share-alt",
-  Table: "fas fa-table",
+const icones: { [key: string]: ReactElement } = {
+  Network: <BiNetworkChart />,
+  Table: <ImTable2 />,
 };
 export const AvailableModules: React.FC<Props> = ({ modules, onSelect }) => {
   return (
@@ -26,10 +28,9 @@ export const AvailableModules: React.FC<Props> = ({ modules, onSelect }) => {
 
             <label className="form-check-label" htmlFor={module.key}>
               <h4>
-                <i
-                  className={`${icones[module.component.name] || ""}`}
-                  style={{ color: module.model.color, marginRight: "0.5rem" }}
-                ></i>
+                <i style={{ color: module.model.color, marginRight: "0.5rem" }}>
+                  {icones[module.component.name] || ""}
+                </i>
                 <span>{module.title}</span>
               </h4>
               <p>
