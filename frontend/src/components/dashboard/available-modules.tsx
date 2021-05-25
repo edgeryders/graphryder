@@ -1,5 +1,4 @@
 import { ModuleType } from "../../core/modules";
-import { BoxWrapper } from "./../box-wrapper";
 
 interface Props {
   modules: Array<ModuleType & { key: string }>;
@@ -22,7 +21,7 @@ export const AvailableModules: React.FC<Props> = ({ modules, onSelect }) => {
               id={module.key}
               checked={module.visible}
               onChange={() => onSelect(module)}
-              style={{ backgroundColor: module.model.color }}
+              style={{ backgroundColor: module.model.color, border: 0 }}
             />
 
             <label className="form-check-label" htmlFor={module.key}>
