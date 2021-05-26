@@ -9,7 +9,7 @@ interface StatsBoxProps {
   verb?: string;
 }
 const StatsElement: React.FC<StatsBoxProps> = ({ model, stat, verb }) => {
-  const label = model.label + (stat > 0 ? "s" : "");
+  const label = model.name + (stat > 0 ? "s" : "");
   return (
     <span className="d-flex  align-items-center">
       <span className="fs-2" style={{ marginRight: "0.5rem", color: model.color }}>

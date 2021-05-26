@@ -27,7 +27,6 @@ export interface Config {
   error_with_stack: boolean;
   logs: ConfigLog;
   neo4j: ConfigNeo4j;
-  graph_style: GraphStyle;
 }
 
 export const config: Config = {
@@ -45,27 +44,5 @@ export const config: Config = {
     login: process.env.NEO4J_LOGIN || "neo4j",
     password: process.env.NEO4J_PASSWORD || "admin",
     options: { disableLosslessIntegers: true },
-  },
-  graph_style: {
-    code: {
-      color: "#0292D5",
-      label_field: "name",
-    },
-    user: {
-      color: "#6AD74D",
-      label_field: "username",
-    },
-    post: {
-      color: "#EA37B0",
-      label_field: "topic_title",
-    },
-    topic: {
-      color: "#555555",
-      label_field: "title",
-    },
-    annotation: {
-      color: "#555555",
-      label_field: "discourse_id",
-    },
   },
 };

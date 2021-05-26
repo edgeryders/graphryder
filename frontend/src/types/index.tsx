@@ -2,9 +2,11 @@ export type ModelTypes = "user" | "code" | "post" | "annotation" | "topic";
 
 export type ModelType = {
   id: ModelTypes;
-  label: string;
+  name: string;
   color: string;
   icon: string;
+  label_field: string;
+  id_field: string;
 };
 
 export type ConfigType = {

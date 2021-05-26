@@ -3,7 +3,6 @@ import { GraphQLResolveInfo, GraphQLObjectType } from "graphql";
 import gql from "graphql-tag";
 import { ResolverContext } from "./index";
 import { cypherToGraph } from "../utils";
-import { config } from "../config";
 
 export const typeDefs = gql`
   #
@@ -287,14 +286,6 @@ export const resolvers = {
       const graph = await cypherToGraph(ctx, query, params);
       graph.setAttribute("platform", params.platform);
       graph.setAttribute("corpora", params.corpora);
-      graph.forEachNode((node, attr) => {
-        Object.keys(config.graph_style).forEach((label) => {
-          if (attr.labels && attr.labels.includes(label)) {
-            graph.setNodeAttribute(node, "color", config.graph_style[label].color);
-            graph.setNodeAttribute(node, "label", attr["properties"][config.graph_style[label].label_field]);
-          }
-        });
-      });
       return graph.export();
     },
   },
