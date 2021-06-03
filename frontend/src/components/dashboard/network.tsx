@@ -40,7 +40,11 @@ export const MyCustomGraph: React.FC<NetworkProps> = ({ graph }) => {
     setSettings({
       nodeReducer: (node: any, data: any) => {
         const graph = sigma.getGraph();
-        const newData = { ...data, size: Math.log(graph.degree(node)), highlighted: false };
+        const newData = {
+          ...data,
+          size: graph.degree(node) !== 0 ? Math.log(graph.degree(node)) : 1,
+          highlighted: false,
+        };
         if (hoveredNode) {
           if (node === hoveredNode || graph.neighbors(hoveredNode).includes(node)) newData.highlighted = true;
           else newData.color = "#E2E2E2";
