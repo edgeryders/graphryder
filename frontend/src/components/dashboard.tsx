@@ -29,7 +29,10 @@ export const Dashboard: FC<{ platform: string; corpus: string }> = ({ platform, 
       setIsLoading(true);
       loadDataset(platform, corpus, queryState)
         .then((dataset) => setDataset(dataset))
-        .catch((err) => setError(err))
+        .catch((err) => {
+          console.error(error);
+          setError(err);
+        })
         .finally(() => setIsLoading(false));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -71,7 +74,13 @@ export const Dashboard: FC<{ platform: string; corpus: string }> = ({ platform, 
       <Header platform={platform} corpus={corpus} />
       <div className="container-fluid">
         {isLoading && <Loader />}
-        {!isLoading && (
+        {!isLoading && error && (
+          <div className="row">
+            <h2>Error</h2>
+            <div className="error">{error?.message || "Something went wrong..."}</div>
+          </div>
+        )}
+        {!isLoading && !error && (
           <div className="row">
             <div className="col-3 d-flex flex-column">
               <div>{dataset && <Stats stats={dataset.stats} />}</div>
@@ -100,8 +109,6 @@ export const Dashboard: FC<{ platform: string; corpus: string }> = ({ platform, 
             </div>
           </div>
         )}
-
-        {error && <div className="error">{error?.message || "Something went wrong..."}</div>}
       </div>
     </>
   );
