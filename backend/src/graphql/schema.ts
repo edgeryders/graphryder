@@ -282,7 +282,7 @@ export const resolvers = {
         	p3=(post)<-[:CREATED]-(user:user),
           p4=(post)<-[:ANNOTATES*0..1]-(a:annotation)-[:REFERS_TO*0..1]->(c:code)
         WHERE topic IN topics
-        RETURN p1, p2, p3, p4, [(c)-[r:COOCCURS]->(c2) | [r, c2]]`;
+        RETURN p1, p2, p3, p4, [(c)-[r:COOCCURS {corpus: $corpora}]->(c2) | [r, c2]]`;
       const graph = await cypherToGraph(ctx, query, params);
       graph.setAttribute("platform", params.platform);
       graph.setAttribute("corpora", params.corpora);
