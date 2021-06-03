@@ -1,9 +1,10 @@
-import Graph from "graphology";
+import Graph, { DirectedGraph, UndirectedGraph } from "graphology";
 import { cloneDeep, memoize } from "lodash";
 import gql from "graphql-tag";
 import { client } from "./client";
 import config from "./config";
 import { QueryState } from "./queryState";
+import { PlainObject } from "sigma/types";
 
 /**
  * Data types:
@@ -117,8 +118,43 @@ export async function loadDataset(platform: string, corpora: string, state: Quer
  * ************************************
  */
 
-function getGraphNaive(dataset: DatasetType, options: unknown): Graph {
-  return dataset.graph;
+export interface GraphOptions {
+  nodeLabels: string[];
+  edgeTypes: string[];
+  scope?: any; //TODO: define scope type
+}
+
+function filterGraph(dataset: DatasetType, options: GraphOptions): Graph {
+  const graph = new Graph({ type: "directed", allowSelfLoops: true });
+  // utils
+  const keepNode = (nodeAtts: PlainObject): boolean =>
+    options.nodeLabels.length === 0 || options.nodeLabels.some((t) => nodeAtts.labels.includes(t));
+  const keepEdge = (edgeAtts: PlainObject): boolean =>
+    options.edgeTypes.length === 0 || options.edgeTypes.includes(edgeAtts.type);
+
+  // iterate first on nodes to keep isolated node into filtered graph
+  dataset.graph.forEachNode((node, atts) => {
+    if (keepNode(atts)) {
+      graph.addNode(node, atts);
+    }
+  });
+  graph.forEachNode((node) => {
+    dataset.graph.forEachOutEdge(node, (edge, atts, source, target, sourceAtts, targetAtts) => {
+      try {
+        if (keepEdge(atts) && keepNode(sourceAtts) && keepNode(targetAtts))
+          graph.addEdgeWithKey(edge, source, target, atts);
+      } catch (e) {
+        console.error(`duplicated edge ${edge}`);
+        console.debug(edge, source, target, graph.edge(source, target), graph.getEdgeAttributes(source, target), atts);
+      }
+    });
+  });
+  console.debug(
+    `fitlered dataset graph (${dataset.graph.size} ${dataset.graph.order}) to ${graph.size} ${
+      graph.order
+    } using ${JSON.stringify(options, undefined, 2)}`,
+  );
+  return graph;
 }
 
 function getTableDataNaive(dataset: DatasetType, options: unknown): TableDataType {
@@ -128,5 +164,5 @@ function getTableDataNaive(dataset: DatasetType, options: unknown): TableDataTyp
 
 // TODO:
 // Check that memoize key is good (and rewrite if needed)
-export const getGraph = memoize(getGraphNaive);
+export const getGraph = memoize(filterGraph, (dataset, options) => JSON.stringify({ ...dataset.stats, ...options }));
 export const getTableData = memoize(getTableDataNaive);
