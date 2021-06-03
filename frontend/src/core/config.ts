@@ -1,4 +1,8 @@
+import { PlainObject } from "sigma/types";
 import { ConfigType } from "../types";
+
+const generic_uniq_id = (node: { labels: string[]; properties: PlainObject }) =>
+  `${node.properties.platform}_${node.labels.join("|")}_${node.properties.discourse_id}`;
 
 const config: ConfigType = {
   graphql: {
@@ -11,7 +15,7 @@ const config: ConfigType = {
       color: "#0292D5",
       icon: "code",
       label_field: "name",
-      id_field: "discourse_id",
+      uniq_id: generic_uniq_id,
     },
     post: {
       id: "post",
@@ -19,7 +23,7 @@ const config: ConfigType = {
       color: "#EA37B0",
       icon: "file-alt",
       label_field: "topic_title",
-      id_field: "discourse_id",
+      uniq_id: generic_uniq_id,
     },
     user: {
       id: "user",
@@ -27,7 +31,7 @@ const config: ConfigType = {
       color: "#6AD74D",
       icon: "user-alt",
       label_field: "username",
-      id_field: "discourse_id",
+      uniq_id: generic_uniq_id,
     },
     annotation: {
       id: "annotation",
@@ -35,7 +39,7 @@ const config: ConfigType = {
       color: "#555555",
       icon: "pencil-alt",
       label_field: "discourse_id",
-      id_field: "discourse_id",
+      uniq_id: generic_uniq_id,
     },
     topic: {
       id: "topic",
@@ -43,7 +47,7 @@ const config: ConfigType = {
       color: "#555555",
       icon: "question",
       label_field: "title",
-      id_field: "discourse_id",
+      uniq_id: generic_uniq_id,
     },
   },
 };

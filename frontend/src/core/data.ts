@@ -47,21 +47,31 @@ const GRAPHQL_GET_GRAPH = gql`
 
 function changeJsonGraphIds(json: any): any {
   const nodeIds: { [key: string]: string } = {};
+  const nodeKeys: { [key: string]: string } = {};
   // convert node's key
-  json.nodes = json.nodes.map((node: any) => {
+  const nodes = json.nodes.map((node: any) => {
     let id = node.key;
     Object.keys(config.models).forEach((label) => {
       if (node.attributes.labels && node.attributes.labels.includes(label)) {
-        id = node.attributes.properties[config.models[label].id_field];
+        // create a uniqu identifier from node properties
+        id = config.models[label].uniq_id(node.attributes);
       }
     });
+
+    // we already have seen this id
+    if (nodeKeys[id])
+      console.debug(
+        `duplicated uniq id ${id} for keys ${nodeKeys[id]} and ${node.key}\n incoming ${JSON.stringify(node)}`,
+      );
+
     nodeIds[node.key] = id;
-    return { ...node, key: id };
+    nodeKeys[id] = node.key;
+    return { ...node, key: id, neo4jId: node.key };
   });
-  json.edges = json.edges.map((edge: any) => {
+  const edges = json.edges.map((edge: any) => {
     return { ...edge, source: nodeIds[edge.source], target: nodeIds[edge.target] };
   });
-  return json;
+  return { ...json, nodes, edges };
 }
 
 export async function loadDataset(platform: string, corpora: string, state: QueryState): Promise<DatasetType> {

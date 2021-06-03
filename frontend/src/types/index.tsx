@@ -1,3 +1,5 @@
+import { PlainObject } from "sigma/types";
+
 export type ModelTypes = "user" | "code" | "post" | "annotation" | "topic";
 
 export type ModelType = {
@@ -6,7 +8,7 @@ export type ModelType = {
   color: string;
   icon: string;
   label_field: string;
-  id_field: string;
+  uniq_id: (node: { labels: string[]; properties: PlainObject }) => string;
 };
 
 export type ConfigType = {
