@@ -16,6 +16,13 @@ const config: ConfigType = {
       icon: "code",
       label_field: "name",
       uniq_id: generic_uniq_id,
+      tableColumns: [
+        { property: "name", label: "Name" },
+        { property: "description", label: "Description" },
+        { property: "created_at", label: "Created at", type: "date" },
+        { property: "annotation_count", label: "Annotation count", type: "number" },
+        //TODO: add generation function support in columns def , generateFromGraph: (graph:Graph, node:string):number => { graph.outNeighbors(node)) }},
+      ],
     },
     post: {
       id: "post",
@@ -24,6 +31,15 @@ const config: ConfigType = {
       icon: "file-alt",
       label_field: "topic_title",
       uniq_id: generic_uniq_id,
+      tableColumns: [
+        { property: "raw", label: "Content" },
+        { property: "postUrl", label: "Post url", type: "url" },
+        { property: "topic_title", label: "Topic" },
+        { property: "topicUrl", label: "Topic url", type: "url" },
+        { property: "created_at", label: "Created at", type: "date" },
+        { property: "word_count", label: "Word count", type: "number" },
+        { property: "username", label: "Author" },
+      ],
     },
     user: {
       id: "user",
@@ -32,6 +48,10 @@ const config: ConfigType = {
       icon: "user-alt",
       label_field: "username",
       uniq_id: generic_uniq_id,
+      tableColumns: [
+        { property: "username", label: "Name" },
+        { property: "profileUrl", label: "Profile url", type: "url" },
+      ],
     },
     annotation: {
       id: "annotation",
@@ -40,6 +60,11 @@ const config: ConfigType = {
       icon: "pencil-alt",
       label_field: "discourse_id",
       uniq_id: generic_uniq_id,
+      tableColumns: [
+        { property: "quote", label: "Quote" },
+        { property: "created_at", label: "Created at", type: "date" },
+        { property: "username", label: "Anotator" },
+      ],
     },
     topic: {
       id: "topic",
@@ -48,6 +73,7 @@ const config: ConfigType = {
       icon: "question",
       label_field: "title",
       uniq_id: generic_uniq_id,
+      tableColumns: [],
     },
   },
 };

@@ -1,10 +1,11 @@
 import Graph, { DirectedGraph, UndirectedGraph } from "graphology";
-import { cloneDeep, memoize } from "lodash";
+import { cloneDeep, keyBy, keys, memoize, values } from "lodash";
 import gql from "graphql-tag";
 import { client } from "./client";
 import config from "./config";
 import { QueryState } from "./queryState";
 import { PlainObject } from "sigma/types";
+import { TableColumn } from "../types";
 
 /**
  * Data types:
@@ -22,7 +23,10 @@ export interface DatasetType {
   };
 }
 
-export type TableDataType = (string | number)[][];
+export type TableDataType = {
+  rows: PlainObject[];
+  columns: TableColumn[];
+};
 
 /**
  * Data loading:
@@ -118,6 +122,9 @@ export async function loadDataset(platform: string, corpora: string, state: Quer
  * ************************************
  */
 
+const keepNodesFromOption = (nodeLabels: string[]) => (nodeAtts: PlainObject): boolean =>
+  nodeLabels.length === 0 || nodeLabels.some((t) => nodeAtts.labels.includes(t));
+
 export interface GraphOptions {
   nodeLabels: string[];
   edgeTypes: string[];
@@ -127,8 +134,7 @@ export interface GraphOptions {
 function filterGraph(dataset: DatasetType, options: GraphOptions): Graph {
   const graph = new Graph({ type: "directed", allowSelfLoops: true });
   // utils
-  const keepNode = (nodeAtts: PlainObject): boolean =>
-    options.nodeLabels.length === 0 || options.nodeLabels.some((t) => nodeAtts.labels.includes(t));
+  const keepNode = keepNodesFromOption(options.nodeLabels);
   const keepEdge = (edgeAtts: PlainObject): boolean =>
     options.edgeTypes.length === 0 || options.edgeTypes.includes(edgeAtts.type);
 
@@ -157,12 +163,33 @@ function filterGraph(dataset: DatasetType, options: GraphOptions): Graph {
   return graph;
 }
 
-function getTableDataNaive(dataset: DatasetType, options: unknown): TableDataType {
-  // TODO
-  return [];
+export interface TableOptions {
+  nodeLabel: string;
+  scope?: any; //TODO: define scope type
+}
+
+function getTableDataNaive(dataset: DatasetType, options: TableOptions): TableDataType {
+  // column preparation
+  const columnsFromAttributes = (nodeAttributes: PlainObject): PlainObject =>
+    config.models[options.nodeLabel].tableColumns.reduce((columns, column) => {
+      if (nodeAttributes.properties[column.property])
+        return { ...columns, [column.property]: nodeAttributes.properties[column.property] };
+      else return columns;
+    }, {});
+  // utils
+  const keepNode = keepNodesFromOption([options.nodeLabel]);
+  const tableData: PlainObject[] = [];
+  dataset.graph.forEachNode((n, atts) => {
+    if (keepNode(atts)) {
+      tableData.push({ key: n, ...columnsFromAttributes(atts) });
+    }
+  });
+  return { rows: tableData, columns: config.models[options.nodeLabel].tableColumns };
 }
 
 // TODO:
 // Check that memoize key is good (and rewrite if needed)
 export const getGraph = memoize(filterGraph, (dataset, options) => JSON.stringify({ ...dataset.stats, ...options }));
-export const getTableData = memoize(getTableDataNaive);
+export const getTableData = memoize(getTableDataNaive, (dataset, options) =>
+  JSON.stringify({ ...dataset.stats, ...options }),
+);

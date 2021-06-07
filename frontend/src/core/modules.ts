@@ -55,7 +55,20 @@ export const Modules: Record<string, ModuleType> = {
     visible: false,
     getProps: (state, dataset): TableProps => ({
       data: getTableData(dataset, {
-        /*TODO*/
+        nodeLabel: "code",
+      }),
+    }),
+  },
+  ul: {
+    id: "ul",
+    title: "User list",
+    description: "Explores the users in the conversation, filtered by your selections of codes and participants",
+    model: config.models.user,
+    component: Table,
+    visible: false,
+    getProps: (state, dataset): TableProps => ({
+      data: getTableData(dataset, {
+        nodeLabel: "user",
       }),
     }),
   },
@@ -69,7 +82,7 @@ export const Modules: Record<string, ModuleType> = {
     visible: false,
     getProps: (state, dataset): TableProps => ({
       data: getTableData(dataset, {
-        /*TODO*/
+        nodeLabel: "post",
       }),
     }),
   },
