@@ -3,6 +3,7 @@ import { PlainObject } from "sigma/types";
 import { Scope } from "../types";
 
 import { Modules } from "./modules";
+import pako from "pako";
 
 const MODULES_KEY = "m";
 const MODULES_SEPARATOR = "|";
@@ -58,11 +59,14 @@ export function stateToQueryString(state: QueryState): string {
 }
 
 const hashNodeIds = (ids: string[]) => {
-  const original = ids.join("|");
-  //TODO: compress
-  return original;
+  if (ids.length > 0) {
+    const original = ids.join("|");
+    // we use compression to save character in URL. Caveats: ugly urls
+    const compressed = pako.deflate(original, { to: "string" });
+    return compressed;
+  } else return "";
 };
 const deHashNodeIds = (idsHashed: string) => {
-  //TODO: decompress
-  return idsHashed.split("|");
+  const decompressed = pako.inflate(idsHashed, { to: "string" }).split("|");
+  return decompressed;
 };

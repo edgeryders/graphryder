@@ -24,7 +24,5 @@ export type ConfigType = {
 };
 
 export type Scope = {
-  user?: string[];
-  code?: string[];
-  post?: string[];
+  [key: string]: string[];
 };

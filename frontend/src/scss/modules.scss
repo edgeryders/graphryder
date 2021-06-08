@@ -32,12 +32,19 @@
       margin: auto 0 auto 0;
     }
   }
-  .data-grid-actions {
-    height: #{$module-header-height};
-    border-top: 1px solid $secondary;
-  }
 
   .data-grid {
     height: calc(100% - #{$module-header-height}* 2) !important;
+  }
+  .data-grid-actions {
+    height: #{$module-header-height};
+    border-top: 1px solid $secondary;
+    display: flex;
+    align-items: center;
+    justify-items: start;
+    .btn {
+      padding: 0.2em;
+      margin-left: 0.5em;
+    }
   }
 }
