@@ -41,8 +41,8 @@ export const Modules: Record<string, ModuleType> = {
     visible: false,
     getProps: (state, dataset): NetworkProps => ({
       graph: getGraph(dataset, {
-        nodeLabels: ["user", "post", "topic"],
-        edgeTypes: ["TALKED_OR_QUOTED", "CREATED", "LIKES", "CREATED", "IN_TOPIC"],
+        nodeLabels: ["user"],
+        edgeTypes: ["TALKED_OR_QUOTED"],
       }),
     }),
   },
