@@ -1,8 +1,10 @@
 import React, { FC, useMemo, useState } from "react";
-import DataGrid, { SortColumn } from "react-data-grid";
+import DataGrid, { SortColumn, SelectColumn } from "react-data-grid";
+import { useHistory, useLocation } from "react-router";
 import { PlainObject } from "sigma/types";
 
 import { TableDataType } from "../../core/data";
+import { queryToState, stateToQueryString } from "../../core/queryState";
 
 export interface TableProps {
   data: TableDataType;
@@ -36,8 +38,13 @@ function getComparator(sortColumn: string): Comparator {
 
 export const Table: FC<TableProps> = (props: TableProps) => {
   const { data } = props;
+  const location = useLocation();
+  const history = useHistory();
   const [sortColumns, setSortColumns] = useState<readonly Readonly<SortColumn>[]>([]);
-  console.debug(data);
+  const [selectedRows, setSelectedRows] = useState<ReadonlySet<string>>(() => new Set());
+  //TODO: use a hook for query management
+  const query = new URLSearchParams(location.search);
+  const queryState = queryToState(query);
 
   const sortedRows = useMemo((): readonly PlainObject[] => {
     if (sortColumns.length === 0) return data.rows;
@@ -57,17 +64,44 @@ export const Table: FC<TableProps> = (props: TableProps) => {
   }, [data, sortColumns]);
 
   return (
-    <DataGrid
-      rowKeyGetter={(r) => r.key}
-      rows={sortedRows}
-      columns={data.columns.map((c) => ({ key: c.property, name: c.label }))}
-      defaultColumnOptions={{
-        sortable: true,
-        resizable: true,
-      }}
-      sortColumns={sortColumns}
-      onSortColumnsChange={setSortColumns}
-      className="data-grid"
-    />
+    <>
+      <DataGrid
+        rowKeyGetter={(r) => r.key}
+        rows={sortedRows}
+        columns={[SelectColumn].concat(data.columns.map((c) => ({ key: c.property, name: c.label })))}
+        defaultColumnOptions={{
+          sortable: true,
+          resizable: true,
+        }}
+        selectedRows={selectedRows}
+        onSelectedRowsChange={setSelectedRows}
+        sortColumns={sortColumns}
+        onSortColumnsChange={setSortColumns}
+        className="data-grid"
+      />
+      <div className="data-grid-actions">
+        {selectedRows.size} selected{" "}
+        <button
+          className="btn"
+          onClick={() => {
+            const ids: string[] = [];
+            selectedRows.forEach((id) => {
+              ids.push(id);
+            });
+            history.push({
+              search: stateToQueryString({
+                ...queryState,
+                scope: {
+                  ...queryState.scope,
+                  [data.label]: ids,
+                },
+              }),
+            });
+          }}
+        >
+          apply to scope
+        </button>
+      </div>
+    </>
   );
 };

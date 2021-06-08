@@ -22,3 +22,9 @@ export type ConfigType = {
   graphql: { http: string };
   models: { [key: string]: ModelType };
 };
+
+export type Scope = {
+  user?: string[];
+  code?: string[];
+  post?: string[];
+};

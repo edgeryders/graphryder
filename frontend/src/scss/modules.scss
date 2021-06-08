@@ -32,8 +32,12 @@
       margin: auto 0 auto 0;
     }
   }
-}
+  .data-grid-actions {
+    height: #{$module-header-height};
+    border-top: 1px solid $secondary;
+  }
 
-.data-grid {
-  height: calc(100% - #{$module-header-height}) !important;
+  .data-grid {
+    height: calc(100% - #{$module-header-height}* 2) !important;
+  }
 }

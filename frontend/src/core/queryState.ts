@@ -1,4 +1,6 @@
 import { forIn, toPairs } from "lodash";
+import { PlainObject } from "sigma/types";
+import { Scope } from "../types";
 
 import { Modules } from "./modules";
 
@@ -12,21 +14,26 @@ export interface ModuleState {
 export interface QueryState {
   modules: string[];
   modulesStates: Record<string, ModuleState>;
+  scope?: Scope;
 }
 
 export function queryToState(query: URLSearchParams): QueryState {
   const modules = (query.get(MODULES_KEY) || "").split(MODULES_SEPARATOR).filter((str) => !!Modules[str]);
   const modulesStates: Record<string, ModuleState> = {};
-
+  const scope: PlainObject = {};
   query.forEach((value, queryKey) => {
     const [module, key] = queryKey.split(".");
-    if (!!Modules[module] && key) {
+    if (modules.includes(module) && !!Modules[module] && key) {
       modulesStates[module] = modulesStates[module] || {};
       modulesStates[module][key] = value;
     }
+    //scope
+    if (module === "sc" && ["code", "user", "post"].includes(key)) {
+      scope[key] = deHashNodeIds(value);
+    }
   });
 
-  return { modules, modulesStates };
+  return { modules, modulesStates, scope };
 }
 
 export function stateToQueryString(state: QueryState): string {
@@ -39,8 +46,23 @@ export function stateToQueryString(state: QueryState): string {
       queryObject[`${moduleID}.${key}`] = value + "";
     });
   });
-
+  //scope
+  if (state.scope) {
+    forIn(state.scope, (ids, label) => {
+      if (ids && ids.length > 0) queryObject[`sc.${label}`] = hashNodeIds(ids);
+    });
+  }
   return toPairs(queryObject)
     .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
     .join("&");
 }
+
+const hashNodeIds = (ids: string[]) => {
+  const original = ids.join("|");
+  //TODO: compress
+  return original;
+};
+const deHashNodeIds = (idsHashed: string) => {
+  //TODO: decompress
+  return idsHashed.split("|");
+};

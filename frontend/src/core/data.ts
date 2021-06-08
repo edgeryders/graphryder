@@ -26,6 +26,7 @@ export interface DatasetType {
 export type TableDataType = {
   rows: PlainObject[];
   columns: TableColumn[];
+  label: string;
 };
 
 /**
@@ -184,7 +185,7 @@ function getTableDataNaive(dataset: DatasetType, options: TableOptions): TableDa
       tableData.push({ key: n, ...columnsFromAttributes(atts) });
     }
   });
-  return { rows: tableData, columns: config.models[options.nodeLabel].tableColumns };
+  return { label: options.nodeLabel, rows: tableData, columns: config.models[options.nodeLabel].tableColumns };
 }
 
 // TODO:
