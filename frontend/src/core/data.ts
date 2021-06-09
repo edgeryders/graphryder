@@ -112,6 +112,7 @@ export async function loadDataset(platform: string, corpora: string, state: Quer
       if (attributes.labels && attributes.labels.includes(label)) {
         graph.setNodeAttribute(key, "color", config.models[label].color);
         graph.setNodeAttribute(key, "label", attributes["properties"][config.models[label].label_field]);
+        graph.setNodeAttribute(key, "model", label);
       }
     });
   });

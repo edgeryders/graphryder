@@ -5,6 +5,9 @@ const generic_uniq_id = (node: { labels: string[]; properties: PlainObject }) =>
   `${node.properties.platform}_${node.labels.join("|")}_${node.properties.discourse_id}`;
 
 const config: ConfigType = {
+  networkStyle: {
+    scopeColor: "#f15c33",
+  },
   graphql: {
     http: "/graphql",
   },
