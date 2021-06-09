@@ -13,6 +13,8 @@ import {
   useLoadGraph,
   useSetSettings,
 } from "../sigma";
+import { queryToState } from "../../core/queryState";
+import { useLocation } from "react-router";
 
 export interface NetworkProps {
   graph: Graph;
@@ -24,7 +26,12 @@ export const MyCustomGraph: React.FC<NetworkProps> = ({ graph }) => {
   const loadGraph = useLoadGraph();
   const setSettings = useSetSettings();
   const [hoveredNode, setHoveredNode] = useState<string | null>(null);
-
+  // rerenderer if module layout change
+  const location = useLocation();
+  const state = queryToState(new URLSearchParams(location.search));
+  useEffect(() => {
+    sigma.refresh();
+  }, [state.modules]);
   useEffect(() => {
     circular.assign(graph);
     loadGraph(graph);
