@@ -1,15 +1,15 @@
-import React, { FC, useMemo, useState } from "react";
+import { FC, useMemo, useState } from "react";
 import DataGrid, { SortColumn, SelectColumn } from "react-data-grid";
-import { useHistory, useLocation } from "react-router";
+
 import { PlainObject } from "sigma/types";
 
-import { GoDiffAdded, GoDiffRemoved } from "react-icons/go";
-
 import { TableDataType } from "../../core/data";
-import { queryToState, stateToQueryString } from "../../core/queryState";
+import { QueryState } from "../../core/queryState";
+import { ScopeActions } from "./scope-actions";
 
 export interface TableProps {
   data: TableDataType;
+  state: QueryState;
 }
 
 type Comparator = (a: PlainObject, b: PlainObject) => number;
@@ -39,15 +39,12 @@ function getComparator(sortColumn: string): Comparator {
 }
 
 export const Table: FC<TableProps> = (props: TableProps) => {
-  const { data } = props;
-  const location = useLocation();
-  const history = useHistory();
+  const { data, state } = props;
+
   const [sortColumns, setSortColumns] = useState<readonly Readonly<SortColumn>[]>([]);
   const [selectedRows, setSelectedRows] = useState<ReadonlySet<string>>(() => new Set());
-  //TODO: use a hook for query management
-  const query = new URLSearchParams(location.search);
-  const queryState = queryToState(query);
-  const scope = queryState.scope && queryState.scope[data.label];
+
+  const scope = state.scope && state.scope[data.label];
 
   const sortedRows = useMemo((): readonly PlainObject[] => {
     if (sortColumns.length === 0 && !scope) return data.rows;
@@ -73,17 +70,7 @@ export const Table: FC<TableProps> = (props: TableProps) => {
     return sortedRows;
   }, [data, sortColumns, scope]);
 
-  let autoColumns = [SelectColumn];
-  // SCOPE management
-  // the scope should maybe always be present
-  if (scope) autoColumns.push({ key: "inScope", name: "Scope" });
-  const setScope = new Set(scope);
-  const selectedNotInScope = new Set<string>();
-  const selectedInScope = new Set<string>();
-  for (const id of selectedRows) {
-    if (setScope.has(id)) selectedInScope.add(id);
-    else selectedNotInScope.add(id);
-  }
+  let autoColumns = [SelectColumn, { key: "inScope", name: "Scope" }];
 
   return (
     <>
@@ -101,46 +88,8 @@ export const Table: FC<TableProps> = (props: TableProps) => {
         onSortColumnsChange={setSortColumns}
         className="data-grid"
       />
-      <div className="data-grid-actions">
-        <button
-          className="btn btn-primary"
-          disabled={selectedNotInScope.size === 0}
-          onClick={() => {
-            // ADD selected to scope
-            history.push({
-              search: stateToQueryString({
-                ...queryState,
-                scope: {
-                  ...queryState.scope,
-                  [data.label]: [...(scope || []), ...selectedNotInScope],
-                },
-              }),
-            });
-          }}
-        >
-          <i>
-            <GoDiffAdded />
-          </i>{" "}
-          {selectedNotInScope.size} selected not in scope{" "}
-        </button>
-        <button
-          className="btn btn-primary"
-          title="remove from scope"
-          disabled={selectedInScope.size === 0}
-          onClick={() => {
-            history.push({
-              search: stateToQueryString({
-                ...queryState,
-                scope: {
-                  ...queryState.scope,
-                  [data.label]: (scope || []).filter((id) => !selectedInScope.has(id)),
-                },
-              }),
-            });
-          }}
-        >
-          <GoDiffRemoved /> {selectedInScope.size} selected already in scope{" "}
-        </button>
+      <div className="data-grid-footer">
+        <ScopeActions model={data.label} selectedIds={selectedRows} state={state} />
       </div>
     </>
   );

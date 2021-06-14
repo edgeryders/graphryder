@@ -26,6 +26,7 @@ export type ConfigType = {
   models: { [key: string]: ModelType };
 };
 
+// TODO: Scope should be ModelTypes: string[] but I don't know how to go around TypeScript constraint
 export type Scope = {
   [key: string]: string[];
 };

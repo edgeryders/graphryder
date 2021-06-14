@@ -13,25 +13,26 @@ import {
   useLoadGraph,
   useSetSettings,
 } from "../sigma";
-import { queryToState } from "../../core/queryState";
+import { QueryState, queryToState } from "../../core/queryState";
 import { useLocation } from "react-router";
 import config from "../../core/config";
 import NodeWithCirclesProgram from "../sigma/node-with-circles/node-with-circles-program";
 import drawHoverWithCircles from "../sigma/node-with-circles/node-with-circles-hover";
+import { ScopeActions } from "./scope-actions";
+import { TiCancel } from "react-icons/ti";
 
-export interface NetworkProps {
+export interface SigmaProps {
   graph: Graph;
+  selectedNodes: ReadonlySet<string>;
+  setSelectedNodes: React.Dispatch<React.SetStateAction<ReadonlySet<string>>>;
 }
 
-export const Sigma: React.FC<NetworkProps> = ({ graph }) => {
+export const Sigma: React.FC<SigmaProps> = ({ graph, selectedNodes, setSelectedNodes }) => {
   const sigma = useSigma();
   const registerEvents = useRegisterEvents();
   const loadGraph = useLoadGraph();
   const setSettings = useSetSettings();
   const [hoveredNode, setHoveredNode] = useState<string | null>(null);
-
-  // selection management
-  const [selectedNodes, setSelectedNodes] = useState<Set<string>>(new Set());
 
   // rerenderer if module layout changed
   const location = useLocation();
@@ -50,10 +51,14 @@ export const Sigma: React.FC<NetworkProps> = ({ graph }) => {
       enterNode: (event: { node: NodeKey }) => setHoveredNode(`${event.node}`),
       leaveNode: (event: { node: NodeKey }) => setHoveredNode(null),
       clickNode: (event: { node: NodeKey }) => {
-        setSelectedNodes((oldSelection) => {
-          let newSelection = new Set<string>();
-          if (!oldSelection.has(event.node + "")) newSelection = new Set<string>([...oldSelection, "" + event.node]);
-          else newSelection = new Set<string>([...oldSelection].filter((n) => n !== "" + event.node));
+        setSelectedNodes((oldSelection: ReadonlySet<string>) => {
+          let newSelection: ReadonlySet<string> = new Set<string>() as ReadonlySet<string>;
+          if (!oldSelection.has(event.node + ""))
+            newSelection = new Set<string>([...oldSelection, "" + event.node]) as ReadonlySet<string>;
+          else
+            newSelection = new Set<string>(
+              [...oldSelection].filter((n) => n !== "" + event.node),
+            ) as ReadonlySet<string>;
           return newSelection;
         });
       },
@@ -102,7 +107,16 @@ export const Sigma: React.FC<NetworkProps> = ({ graph }) => {
   return null;
 };
 
-export const Network: FC<NetworkProps> = ({ graph }) => {
+export type NetworkProps = {
+  graph: Graph;
+  model: string;
+  state: QueryState;
+};
+
+export const Network: FC<NetworkProps> = ({ graph, model, state }) => {
+  // selection management
+  const [selectedNodes, setSelectedNodes] = useState<ReadonlySet<string>>(new Set());
+
   return (
     <SigmaContainer
       graphOptions={{ multi: true, type: "directed", allowSelfLoops: true }}
@@ -110,14 +124,34 @@ export const Network: FC<NetworkProps> = ({ graph }) => {
         nodeProgramClasses: { circle: NodeWithCirclesProgram },
       }}
     >
-      <Sigma graph={graph} />
-      <ControlsContainer position={"bottom-right"}>
+      <Sigma graph={graph} selectedNodes={selectedNodes} setSelectedNodes={setSelectedNodes} />
+      <ControlsContainer position={"top-right"}>
         <ZoomControl />
         <ForceAtlasControl autoRunFor={2000} />
       </ControlsContainer>
-      <ControlsContainer position={"bottom-left"}>
+      <ControlsContainer position={"bottom-right"}>
         <DegreeFilter />
       </ControlsContainer>
+      <ControlsContainer position={"bottom-left"}>
+        <div className="scope">
+          {selectedNodes.size > 0 ? (
+            <>
+              <div>
+                {selectedNodes.size} selected {model}{" "}
+                <button className="selection-action btn btn-link">
+                  <i onClick={() => setSelectedNodes(new Set())} title="Cancel selection">
+                    <TiCancel />
+                  </i>
+                </button>
+              </div>
+              <ScopeActions model={model} selectedIds={selectedNodes} state={state} />
+            </>
+          ) : (
+            <div>Select node.s to handle scope</div>
+          )}
+        </div>
+      </ControlsContainer>{" "}
+      :
     </SigmaContainer>
   );
 };

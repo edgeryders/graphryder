@@ -36,9 +36,22 @@
   .data-grid {
     height: calc(100% - #{$module-header-height}* 2) !important;
   }
-  .data-grid-actions {
+  .scope {
+    padding: 0.5em;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    .selection-action {
+      vertical-align: bottom;
+      padding: 0;
+      > i > svg {
+        height: 1.5em;
+        width: 1.5em;
+      }
+    }
+  }
+  .scope-actions {
     height: #{$module-header-height};
-    border-top: 1px solid $secondary;
     display: flex;
     align-items: center;
     justify-items: start;
@@ -46,5 +59,11 @@
       padding: 0.2em;
       margin-left: 0.5em;
     }
+    .btn:last-child {
+      margin-right: 0.5em;
+    }
+  }
+  .data-grid-footer {
+    border-top: 1px solid $secondary;
   }
 }

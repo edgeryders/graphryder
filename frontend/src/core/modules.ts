@@ -3,7 +3,7 @@ import { ComponentType } from "react";
 import { QueryState } from "./queryState";
 import { DatasetType, getGraph, getTableData } from "./data";
 import { Table, TableProps } from "../components/dashboard/table";
-import { Network, NetworkProps } from "../components/dashboard/network";
+import { Network, NetworkProps, SigmaProps } from "../components/dashboard/network";
 import { ModelType } from "../types";
 import config from "./config";
 
@@ -30,6 +30,9 @@ export const Modules: Record<string, ModuleType> = {
         nodeLabels: ["code"],
         edgeTypes: ["COOCCURS"],
       }),
+      // uggly cause to Scope Type beeing a PlainObject where it should use ModelType as key type
+      model: "code",
+      state,
     }),
   },
   pi: {
@@ -44,6 +47,8 @@ export const Modules: Record<string, ModuleType> = {
         nodeLabels: ["user"],
         edgeTypes: ["TALKED_OR_QUOTED"],
       }),
+      model: "user",
+      state,
     }),
   },
   cl: {
@@ -57,6 +62,7 @@ export const Modules: Record<string, ModuleType> = {
       data: getTableData(dataset, {
         nodeLabel: "code",
       }),
+      state,
     }),
   },
   ul: {
@@ -70,6 +76,7 @@ export const Modules: Record<string, ModuleType> = {
       data: getTableData(dataset, {
         nodeLabel: "user",
       }),
+      state,
     }),
   },
   ctl: {
@@ -84,6 +91,7 @@ export const Modules: Record<string, ModuleType> = {
       data: getTableData(dataset, {
         nodeLabel: "post",
       }),
+      state,
     }),
   },
 };
