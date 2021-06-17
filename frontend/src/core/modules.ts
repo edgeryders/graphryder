@@ -3,7 +3,7 @@ import { ComponentType } from "react";
 import { QueryState } from "./queryState";
 import { DatasetType, getGraph, getTableData } from "./data";
 import { Table, TableProps } from "../components/dashboard/table";
-import { Network, NetworkProps, SigmaProps } from "../components/dashboard/network";
+import { Network, NetworkProps } from "../components/dashboard/network";
 import { ModelType } from "../types";
 import config from "./config";
 
@@ -29,6 +29,7 @@ export const Modules: Record<string, ModuleType> = {
       graph: getGraph(dataset, {
         nodeLabels: ["code"],
         edgeTypes: ["COOCCURS"],
+        scope: state.scope,
       }),
       // uggly cause to Scope Type beeing a PlainObject where it should use ModelType as key type
       model: "code",
@@ -46,6 +47,7 @@ export const Modules: Record<string, ModuleType> = {
       graph: getGraph(dataset, {
         nodeLabels: ["user"],
         edgeTypes: ["TALKED_OR_QUOTED"],
+        scope: state.scope,
       }),
       model: "user",
       state,
@@ -61,6 +63,7 @@ export const Modules: Record<string, ModuleType> = {
     getProps: (state, dataset): TableProps => ({
       data: getTableData(dataset, {
         nodeLabel: "code",
+        scope: state.scope,
       }),
       state,
     }),
@@ -75,6 +78,7 @@ export const Modules: Record<string, ModuleType> = {
     getProps: (state, dataset): TableProps => ({
       data: getTableData(dataset, {
         nodeLabel: "user",
+        scope: state.scope,
       }),
       state,
     }),
@@ -90,6 +94,7 @@ export const Modules: Record<string, ModuleType> = {
     getProps: (state, dataset): TableProps => ({
       data: getTableData(dataset, {
         nodeLabel: "post",
+        scope: state.scope,
       }),
       state,
     }),

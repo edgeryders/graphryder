@@ -1,11 +1,12 @@
 import Graph, { DirectedGraph, UndirectedGraph } from "graphology";
-import { cloneDeep, keyBy, keys, memoize, values } from "lodash";
+import { cloneDeep, memoize } from "lodash";
 import gql from "graphql-tag";
 import { client } from "./client";
 import config from "./config";
 import { QueryState } from "./queryState";
 import { PlainObject } from "sigma/types";
-import { TableColumn } from "../types";
+import { Scope, TableColumn } from "../types";
+import { NodeKey } from "graphology-types";
 
 /**
  * Data types:
@@ -124,32 +125,116 @@ export async function loadDataset(platform: string, corpora: string, state: Quer
  * ************************************
  */
 
-const keepNodesFromOption = (nodeLabels: string[]) => (nodeAtts: PlainObject): boolean =>
-  nodeLabels.length === 0 || nodeLabels.some((t) => nodeAtts.labels.includes(t));
+// graph traversal utils
+const postInCodeScope = (graph: Graph, codeScope: string[] | undefined, post: string | null): boolean => {
+  return (
+    !codeScope ||
+    (!!post &&
+      graph.inEdges(post).some((inLinkPost) => {
+        const anotation = graph.getEdgeAttribute(inLinkPost, "type") === "ANNOTATES" ? graph.source(inLinkPost) : null;
+        return (
+          anotation &&
+          graph.outEdges(anotation).some((outLinkAnot) => {
+            const code = graph.getEdgeAttribute(outLinkAnot, "type") === "REFERS_TO" ? graph.target(outLinkAnot) : null;
+            // does tu user created a post which was annotated by a scope code?
+            return code && codeScope.includes(code);
+          })
+        );
+      }))
+  );
+};
+const postInUserScope = (graph: Graph, userScope: string[] | undefined, post: string | null): boolean => {
+  return (
+    !userScope ||
+    (!!post &&
+      graph.inEdges(post).some((inLinkPost) => {
+        // post <- [:CREATED] - user
+        // was this post created by a scope.user?
+        return graph.getEdgeAttribute(inLinkPost, "type") === "CREATED" && userScope.includes(graph.source(inLinkPost));
+      }))
+  );
+};
+const keepNodesFromOption = (graph: Graph, options: GraphOptions) => (node: string, nodeAtts: PlainObject): boolean => {
+  const { nodeLabels, scope } = options;
+  // keep only nodes asked in options though label filter
+  if (
+    nodeLabels.length === 0 ||
+    (nodeLabels.length !== 0 && !nodeLabels.some((t: string) => nodeAtts.labels.includes(t)))
+  )
+    return false;
+
+  // check scope
+  if (scope) {
+    // scope application on code nodes
+    if (nodeAtts.model === "code" && (scope.user || scope.post))
+      //TODO: DOES scope.code filter code - code network ?
+      return graph.inNeighbors(node).some((annotation) => {
+        // does the node has an annotation ?
+        if (graph.getNodeAttribute(annotation, "labels").includes("annotation")) {
+          // code <- Anotation -> post
+          const posts = graph.outNeighbors(annotation);
+          return (
+            // does posts contains a scope.post?
+            !scope.post ||
+            posts.some((post) => scope.post.includes(post)) || // TODO: should this be a and ?
+            // was on of posts created by a scope.user ?
+            posts.some((post) => postInUserScope(graph, scope.user, post))
+          );
+        }
+        return false;
+      });
+    // scope application on user node
+    if (nodeAtts.model === "user" && (scope.code || scope.post))
+      //TODO: DOES scope.user filter user - user network ?
+      return graph.outEdges(node).some((outLinkUser) => {
+        // user - [:CREATED] -> post
+        const post = graph.getEdgeAttribute(outLinkUser, "type") === "CREATED" ? graph.target(outLinkUser) : null;
+        // does the user has created posts  ?
+        return (
+          !scope.post ||
+          (post && scope.post.includes(post)) || // TODO: should this be a and ?
+          // post <- anotation -> code
+          postInCodeScope(graph, scope.code, post)
+        );
+      });
+    // scope application on post node
+    if (nodeAtts.model === "post" && (scope.code || scope.user)) {
+      //TODO: DOES scope.post filter post list ?
+      return (
+        // post <- [:CREATED] - user
+        postInUserScope(graph, scope.user, node) || // TODO: should this be a and?
+        // post <- anotation -> code
+        postInCodeScope(graph, scope.code, node)
+      );
+    }
+  }
+  // no scope or no scope applied => we keep the node
+  return true;
+};
 
 export interface GraphOptions {
   nodeLabels: string[];
-  edgeTypes: string[];
-  scope?: any; //TODO: define scope type
+  edgeTypes?: string[];
+  scope: Scope | undefined;
 }
 
 function filterGraph(dataset: DatasetType, options: GraphOptions): Graph {
   const graph = new Graph({ type: "directed", allowSelfLoops: true });
   // utils
-  const keepNode = keepNodesFromOption(options.nodeLabels);
+  const keepNode = keepNodesFromOption(dataset.graph, options);
   const keepEdge = (edgeAtts: PlainObject): boolean =>
-    options.edgeTypes.length === 0 || options.edgeTypes.includes(edgeAtts.type);
+    !!options.edgeTypes && (options.edgeTypes.length === 0 || options.edgeTypes.includes(edgeAtts.type));
 
   // iterate first on nodes to keep isolated node into filtered graph
   dataset.graph.forEachNode((node, atts) => {
-    if (keepNode(atts)) {
+    if (keepNode(node, atts)) {
       graph.addNode(node, atts);
     }
   });
   graph.forEachNode((node) => {
     dataset.graph.forEachOutEdge(node, (edge, atts, source, target, sourceAtts, targetAtts) => {
       try {
-        if (keepEdge(atts) && keepNode(sourceAtts) && keepNode(targetAtts))
+        if (keepEdge(atts) && keepNode(source, sourceAtts) && keepNode(target, targetAtts))
           graph.addEdgeWithKey(edge, source, target, atts);
       } catch (e) {
         console.error(`duplicated edge ${edge}`);
@@ -167,7 +252,7 @@ function filterGraph(dataset: DatasetType, options: GraphOptions): Graph {
 
 export interface TableOptions {
   nodeLabel: string;
-  scope?: any; //TODO: define scope type
+  scope: Scope | undefined;
 }
 
 function getTableDataNaive(dataset: DatasetType, options: TableOptions): TableDataType {
@@ -179,10 +264,10 @@ function getTableDataNaive(dataset: DatasetType, options: TableOptions): TableDa
       else return columns;
     }, {});
   // utils
-  const keepNode = keepNodesFromOption([options.nodeLabel]);
+  const keepNode = keepNodesFromOption(dataset.graph, { scope: options.scope, nodeLabels: [options.nodeLabel] });
   const tableData: PlainObject[] = [];
   dataset.graph.forEachNode((n, atts) => {
-    if (keepNode(atts)) {
+    if (keepNode(n, atts)) {
       tableData.push({ key: n, ...columnsFromAttributes(atts) });
     }
   });
