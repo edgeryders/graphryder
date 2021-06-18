@@ -279,7 +279,7 @@ export const resolvers = {
         MATCH
         	p1=(post:post)-[:ON_PLATFORM]->(platform),
           p2=(post)-[:IN_TOPIC]->(topic:topic),
-        	p3=(post)<-[:CREATED|:LIKES]-(user:user)-[:TALKED_OR_QUOTED]->(user2:user),
+        	p3=(post)<-[:CREATED]-(user:user)-[:TALKED_OR_QUOTED]->(user2:user),
           p4=(post)<-[:ANNOTATES*0..1]-(a:annotation)-[:REFERS_TO*0..1]->(c:code)
         WHERE topic IN topics
         RETURN p1, p2, p3, p4, [(c)-[r:COOCCURS {corpus: $corpora}]->(c2) | [r, c2]]`;
