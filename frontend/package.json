@@ -18,7 +18,7 @@
     "bootstrap": "^5.0.0",
     "graphology": "^0.19.3",
     "graphology-layout": "^0.4.0",
-    "graphology-layout-forceatlas2": "^0.6.0",
+    "graphology-layout-forceatlas2": "^0.6.1",
     "graphology-types": "^0.19.2",
     "lodash": "^4.17.21",
     "node-sass": "^5.0.0",
