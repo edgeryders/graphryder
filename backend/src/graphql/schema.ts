@@ -277,19 +277,17 @@ export const resolvers = {
     ): Promise<any> => {
       const query = `
         CALL apoc.graph.fromCypher('
+          MATCH  (:platform {name: $platform})<-[:ON_PLATFORM]-(corpus:corpus {name: $corpora})
+          WITH corpus
           MATCH
-            (platform:platform {name: $name}),
-            (corpus:corpus {name: $corpora})
-          WITH platform, [(corpus)<-[:TAGGED_WITH]-(topic:topic) | topic] as topics
-            MATCH
-              p1=(post:post)-[:ON_PLATFORM]->(platform),
-              p2=(post)-[:IN_TOPIC]->(topic:topic),
-              p3=(post)<-[:CREATED]-(user:user)-[:TALKED_OR_QUOTED]->(user2:user),
-              p4=(post)<-[:ANNOTATES*0..1]-(a:annotation)-[:REFERS_TO*0..1]->(c:code),
-              p5=(c)-[:IN_CORPUS]->(corpus)
-            WHERE topic IN topics
-            RETURN p1, p2, p3, p4, p5, [(c)-[r:COOCCURS {corpus: $corpora}]->(c2) | [r, c2]]',
-          {corpora:$corpora, name:$platform},
+          p1=(post)-[:IN_TOPIC]->(topic),
+          p2=(post)<-[:CREATED]-(user:user),
+          p3=(user:user)-[:TALKED_OR_QUOTED*0..1]->(user2:user),
+          p4=(post)<-[:ANNOTATES*0..1]-(a:annotation)-[:REFERS_TO*0..1]->(c:code)-[:IN_CORPUS]->(corpus)
+          WHERE (topic)-[:TAGGED_WITH]->(corpus) AND 
+                exists((user2)-[:CREATED]->()-[:IN_TOPIC]->()-[:TAGGED_WITH]->(corpus))
+          RETURN p1, p2, p3, p4, [(c)-[r:COOCCURS {corpus: $corpora}]->(c2) | [r, c2]]',
+          {corpora:$corpora, platform:$platform},
           "",
           {}
         ) YIELD graph AS g
