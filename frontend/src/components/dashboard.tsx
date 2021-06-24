@@ -9,6 +9,8 @@ import { Loader } from "./loader";
 import { BoxWrapper } from "./box-wrapper";
 import { AvailableModules } from "./dashboard/available-modules";
 import { Header } from "./layout/header";
+import { NetworkProps } from "./dashboard/network";
+import { TableProps } from "./dashboard/table";
 
 export const Dashboard: FC<{ platform: string; corpus: string }> = ({ platform, corpus }) => {
   const location = useLocation();
@@ -40,11 +42,12 @@ export const Dashboard: FC<{ platform: string; corpus: string }> = ({ platform, 
 
   const renderModule = (module: ModuleType): ReactElement => {
     let content: JSX.Element | null = null;
-
+    let nbItems: number | undefined = undefined;
     if (!dataset) {
       content = <Loader />;
     } else {
-      const props = module.getProps(queryState, dataset);
+      const props: NetworkProps | TableProps = module.getProps(queryState, dataset);
+      nbItems = props && "data" in props ? props.data.rows.length : props.graph.order;
       const Component = module.component;
       content = <Component {...props} />;
     }
@@ -58,7 +61,9 @@ export const Dashboard: FC<{ platform: string; corpus: string }> = ({ platform, 
       >
         <div className="module-wrapper">
           <div className="title">
-            <h2>{module.title}</h2>
+            <h2>
+              {module.title} {nbItems ? `(${nbItems})` : ""}
+            </h2>
           </div>
           {content}
         </div>
@@ -83,7 +88,7 @@ export const Dashboard: FC<{ platform: string; corpus: string }> = ({ platform, 
         {!isLoading && !error && (
           <div className="row">
             <div className="col-3 d-flex flex-column">
-              <div>{dataset && <Stats stats={dataset.stats} />}</div>
+              <div>{dataset && <Stats stats={dataset.stats} scope={queryState.scope} />}</div>
               <div>
                 <AvailableModules
                   modules={availableModules}

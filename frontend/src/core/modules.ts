@@ -14,7 +14,7 @@ export interface ModuleType {
   visible: boolean;
   model: ModelType;
   component: ComponentType<any>;
-  getProps(state: QueryState, dataset: DatasetType): unknown;
+  getProps(state: QueryState, dataset: DatasetType): NetworkProps | TableProps;
 }
 
 export const Modules: Record<string, ModuleType> = {
