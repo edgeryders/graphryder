@@ -167,7 +167,6 @@ const keepNodesFromOption = (graph: Graph, options: GraphOptions) => (node: stri
   if (scope) {
     // scope application on code nodes
     if (nodeAtts.model === "code" && (scope.user || scope.post))
-      //TODO: DOES scope.code filter code - code network ?
       return graph.inNeighbors(node).some((annotation) => {
         // does the node has an annotation ?
         if (graph.getNodeAttribute(annotation, "labels").includes("annotation")) {
@@ -175,32 +174,27 @@ const keepNodesFromOption = (graph: Graph, options: GraphOptions) => (node: stri
           const posts = graph.outNeighbors(annotation);
           return (
             // does posts contains a scope.post?
-            !scope.post ||
-            (posts.some((post) => scope.post.includes(post)) && // This AND could a OR depending on how we want multiscope variable to be cumulative or assortative
-              // was on of posts created by a scope.user ?
-              posts.some((post) => postInUserScope(graph, scope.user, post)))
+            (!scope.post || posts.some((post) => scope.post.includes(post))) && // This AND could a OR depending on how we want multiscope variable to be cumulative or assortative
+            // was on of posts created by a scope.user ?
+            (!scope.user || posts.some((post) => postInUserScope(graph, scope.user, post)))
           );
         }
         return false;
       });
     // scope application on user node
     if (nodeAtts.model === "user" && (scope.code || scope.post))
-      //TODO: DOES scope.user filter user - user network ?
       return graph.outEdges(node).some((outLinkUser) => {
         // user - [:CREATED] -> post
         const post = graph.getEdgeAttribute(outLinkUser, "type") === "CREATED" ? graph.target(outLinkUser) : null;
         // does the user has created posts  ?
         return (
-          !scope.post ||
-          (post &&
-            scope.post.includes(post) && // This AND could a OR depending on how we want multiscope variable to be cumulative or assortative
-            // post <- anotation -> code
-            postInCodeScope(graph, scope.code, post))
+          (!scope.post || (post && scope.post.includes(post))) && // This AND could a OR depending on how we want multiscope variable to be cumulative or assortative
+          // post <- anotation -> code
+          postInCodeScope(graph, scope.code, post)
         );
       });
     // scope application on post node
     if (nodeAtts.model === "post" && (scope.code || scope.user)) {
-      //TODO: DOES scope.post filter post list ?
       return (
         // post <- [:CREATED] - user
         postInUserScope(graph, scope.user, node) && // This AND could a OR depending on how we want multiscope variable to be cumulative or assortative
@@ -235,7 +229,7 @@ function filterGraph(dataset: DatasetType, options: GraphOptions): Graph {
   graph.forEachNode((node) => {
     dataset.graph.forEachOutEdge(node, (edge, atts, source, target, sourceAtts, targetAtts) => {
       try {
-        if (keepEdge(atts) && keepNode(source, sourceAtts) && keepNode(target, targetAtts))
+        if (graph.hasNode(source) && graph.hasNode(target) && keepEdge(atts))
           graph.addEdgeWithKey(edge, source, target, atts);
       } catch (e) {
         console.error(`duplicated edge ${edge}`);
