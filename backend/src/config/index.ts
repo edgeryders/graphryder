@@ -27,11 +27,13 @@ export interface Config {
   error_with_stack: boolean;
   logs: ConfigLog;
   neo4j: ConfigNeo4j;
+  graphql_cache_max_age: number;
 }
 
 export const config: Config = {
   port: process.env.BACKEND_PORT ? Number(process.env.BACKEND_PORT) : 4000,
   error_with_stack: process.env.ERROR_WITH_STACK ? true : false,
+  graphql_cache_max_age: 1200,
   logs: {
     console_level: (process.env.LOG_CONSOLE_LEVEL || "info") as LogLevel,
     file_level: (process.env.LOG_FILE_LEVEL || "error") as LogLevel,

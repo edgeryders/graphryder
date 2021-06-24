@@ -3,6 +3,10 @@ import { GraphQLResolveInfo, GraphQLObjectType } from "graphql";
 import gql from "graphql-tag";
 import { ResolverContext } from "./index";
 import { cypherToGraph } from "../utils";
+import { getLogger } from "../logger";
+
+// logger
+const log = getLogger("GraphQl");
 
 export const typeDefs = gql`
   #
@@ -272,22 +276,29 @@ export const resolvers = {
       resolverInfo: GraphQLResolveInfo,
     ): Promise<any> => {
       const query = `
-      MATCH
-        (platform:platform {name: $platform}),
-        (corpus:corpus {name: $corpora})
-      WITH platform, [(corpus)<-[:TAGGED_WITH]-(topic:topic) | topic] as topics
-        MATCH
-        	p1=(post:post)-[:ON_PLATFORM]->(platform),
-          p2=(post)-[:IN_TOPIC]->(topic:topic),
-        	p3=(post)<-[:CREATED]-(user:user)-[:TALKED_OR_QUOTED]->(user2:user),
-          p4=(post)<-[:ANNOTATES*0..1]-(a:annotation)-[:REFERS_TO*0..1]->(c:code)
-        WHERE topic IN topics
-        RETURN p1, p2, p3, p4, [(c)-[r:COOCCURS {corpus: $corpora}]->(c2) | [r, c2]]`;
-      console.debug("asking graph to cypher");
+        CALL apoc.graph.fromCypher('
+          MATCH
+            (platform:platform {name: $name}),
+            (corpus:corpus {name: $corpora})
+          WITH platform, [(corpus)<-[:TAGGED_WITH]-(topic:topic) | topic] as topics
+            MATCH
+              p1=(post:post)-[:ON_PLATFORM]->(platform),
+              p2=(post)-[:IN_TOPIC]->(topic:topic),
+              p3=(post)<-[:CREATED]-(user:user)-[:TALKED_OR_QUOTED]->(user2:user),
+              p4=(post)<-[:ANNOTATES*0..1]-(a:annotation)-[:REFERS_TO*0..1]->(c:code),
+              p5=(c)-[:IN_CORPUS]->(corpus)
+            WHERE topic IN topics
+            RETURN p1, p2, p3, p4, p5, [(c)-[r:COOCCURS {corpus: $corpora}]->(c2) | [r, c2]]',
+          {corpora:$corpora, name:$platform},
+          "",
+          {}
+        ) YIELD graph AS g
+        RETURN g.nodes AS nodes, g.relationships AS edges`;
+      log.info(`Asking graph for ${JSON.stringify(params)}`);
       const graph = await cypherToGraph(ctx, query, params);
-      console.debug("got Neo4j response, computing JSON serialisation");
       graph.setAttribute("platform", params.platform);
       graph.setAttribute("corpora", params.corpora);
+      log.info(`Returned computed graph`);
       return graph.export();
     },
   },

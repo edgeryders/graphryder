@@ -1,5 +1,6 @@
 import { Express } from "express";
 import { ApolloServer } from "apollo-server-express";
+import responseCachePlugin from "apollo-server-plugin-response-cache";
 import { assertSchema, makeAugmentedSchema } from "neo4j-graphql-js";
 import * as neo4j from "neo4j-driver";
 import { config } from "../config";
@@ -34,6 +35,10 @@ export async function register(app: Express): Promise<void> {
     schema,
     context: {
       driver,
+    },
+    plugins: [responseCachePlugin()],
+    cacheControl: {
+      defaultMaxAge: config.graphql_cache_max_age,
     },
   });
 
