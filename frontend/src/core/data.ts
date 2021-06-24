@@ -176,9 +176,9 @@ const keepNodesFromOption = (graph: Graph, options: GraphOptions) => (node: stri
           return (
             // does posts contains a scope.post?
             !scope.post ||
-            posts.some((post) => scope.post.includes(post)) || // TODO: should this be a and ?
-            // was on of posts created by a scope.user ?
-            posts.some((post) => postInUserScope(graph, scope.user, post))
+            (posts.some((post) => scope.post.includes(post)) && // This AND could a OR depending on how we want multiscope variable to be cumulative or assortative
+              // was on of posts created by a scope.user ?
+              posts.some((post) => postInUserScope(graph, scope.user, post)))
           );
         }
         return false;
@@ -192,9 +192,10 @@ const keepNodesFromOption = (graph: Graph, options: GraphOptions) => (node: stri
         // does the user has created posts  ?
         return (
           !scope.post ||
-          (post && scope.post.includes(post)) || // TODO: should this be a and ?
-          // post <- anotation -> code
-          postInCodeScope(graph, scope.code, post)
+          (post &&
+            scope.post.includes(post) && // This AND could a OR depending on how we want multiscope variable to be cumulative or assortative
+            // post <- anotation -> code
+            postInCodeScope(graph, scope.code, post))
         );
       });
     // scope application on post node
@@ -202,7 +203,7 @@ const keepNodesFromOption = (graph: Graph, options: GraphOptions) => (node: stri
       //TODO: DOES scope.post filter post list ?
       return (
         // post <- [:CREATED] - user
-        postInUserScope(graph, scope.user, node) || // TODO: should this be a and?
+        postInUserScope(graph, scope.user, node) && // This AND could a OR depending on how we want multiscope variable to be cumulative or assortative
         // post <- anotation -> code
         postInCodeScope(graph, scope.code, node)
       );
@@ -257,10 +258,12 @@ export interface TableOptions {
 
 function getTableDataNaive(dataset: DatasetType, options: TableOptions): TableDataType {
   // column preparation
-  const columnsFromAttributes = (nodeAttributes: PlainObject): PlainObject =>
+  const columnsFromAttributes = (node: string, nodeAttributes: PlainObject): PlainObject =>
     config.models[options.nodeLabel].tableColumns.reduce((columns, column) => {
       if (nodeAttributes.properties[column.property])
         return { ...columns, [column.property]: nodeAttributes.properties[column.property] };
+      else if (column.generateFromNode)
+        return { ...columns, [column.property]: column.generateFromNode(dataset.graph, node) };
       else return columns;
     }, {});
   // utils
@@ -268,7 +271,7 @@ function getTableDataNaive(dataset: DatasetType, options: TableOptions): TableDa
   const tableData: PlainObject[] = [];
   dataset.graph.forEachNode((n, atts) => {
     if (keepNode(n, atts)) {
-      tableData.push({ key: n, ...columnsFromAttributes(atts) });
+      tableData.push({ key: n, ...columnsFromAttributes(n, atts) });
     }
   });
   return { label: options.nodeLabel, rows: tableData, columns: config.models[options.nodeLabel].tableColumns };

@@ -1,3 +1,4 @@
+import Graph from "graphology";
 import { PlainObject } from "sigma/types";
 
 export type ModelTypes = "user" | "code" | "post" | "annotation" | "topic";
@@ -6,6 +7,7 @@ export type TableColumn = {
   property: string;
   label: string;
   type?: "string" | "boolean" | "number" | "date" | "url";
+  generateFromNode?: (graph: Graph, node: string) => any;
 };
 
 export type ModelType = {

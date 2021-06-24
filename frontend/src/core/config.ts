@@ -23,8 +23,22 @@ const config: ConfigType = {
         { property: "name", label: "Name" },
         { property: "description", label: "Description" },
         { property: "created_at", label: "Created at", type: "date" },
-        { property: "annotation_count", label: "Annotation count", type: "number" },
-        //TODO: add generation function support in columns def , generateFromGraph: (graph:Graph, node:string):number => { graph.outNeighbors(node)) }},
+        {
+          property: "annotation_count",
+          label: "Annotation count",
+          type: "number",
+          generateFromNode: (graph, node): number => {
+            let nb_annotation = 0;
+            graph.forEachOutEdgeUntil(node, (e, atts, source, target) => {
+              if (atts.type === "IN_CORPUS") {
+                nb_annotation = atts.properties.annotation_count;
+                return true;
+              }
+              return false;
+            });
+            return nb_annotation;
+          },
+        },
       ],
     },
     post: {
