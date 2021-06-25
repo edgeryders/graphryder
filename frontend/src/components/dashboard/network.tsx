@@ -84,7 +84,9 @@ export const Sigma: React.FC<SigmaProps> = ({ graph, selectedNodes, setSelectedN
         }
       });
       // drop deprecated nodes
-      deprecatedNodes.forEach((n) => sigmaGraph.dropNode(n));
+      deprecatedNodes.forEach((n) => {
+        if (sigmaGraph.hasNode(n)) sigmaGraph.dropNode(n);
+      });
       const edgesToMerge: { [key: string]: [string, string, string, PlainObject] } = {};
       let newNodesByNeighborhood: { [key: string]: number } = {};
       graph.forEachNode((n, atts) => {
