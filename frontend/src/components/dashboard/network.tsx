@@ -18,10 +18,9 @@ import { useLocation } from "react-router";
 import config from "../../core/config";
 import NodeWithCirclesProgram from "../sigma/node-with-circles/node-with-circles-program";
 import drawHoverWithCircles from "../sigma/node-with-circles/node-with-circles-hover";
-import { ScopeActions } from "./scope-actions";
-import { TiCancel } from "react-icons/ti";
 import { random, sortedUniq, sum, values } from "lodash";
 import { PlainObject } from "sigma/types";
+import { NodeLegend } from "../sigma/controls/NodeLegend";
 
 export interface SigmaProps {
   graph: Graph;
@@ -210,21 +209,7 @@ export const Network: FC<NetworkProps> = ({ graph, model, state }) => {
       </ControlsContainer>
       <ControlsContainer position={"bottom-left"}>
         <div className="scope">
-          {selectedNodes.size > 0 ? (
-            <>
-              <div>
-                {selectedNodes.size} selected {model}{" "}
-                <button className="selection-action btn btn-link">
-                  <i onClick={() => setSelectedNodes(new Set())} title="Cancel selection">
-                    <TiCancel />
-                  </i>
-                </button>
-              </div>
-              <ScopeActions model={model} selectedIds={selectedNodes} state={state} />
-            </>
-          ) : (
-            <div>Select node.s to handle scope</div>
-          )}
+          <NodeLegend model={model} selectedIds={selectedNodes} state={state} setSelectedNodes={setSelectedNodes} />
         </div>
       </ControlsContainer>{" "}
       :
