@@ -7,6 +7,7 @@ const generic_uniq_id = (node: { labels: string[]; properties: PlainObject }) =>
 const config: ConfigType = {
   networkStyle: {
     scopeColor: "#f15c33",
+    selectColor: "#FFFFFF",
   },
   graphql: {
     http: "/graphql",

@@ -148,7 +148,7 @@ export const Sigma: React.FC<SigmaProps> = ({ graph, selectedNodes, setSelectedN
         color: config.models[model].color,
         size: sigmaGraph.degree(node) !== 0 ? Math.log(sigmaGraph.degree(node)) : 1,
         highlighted: false,
-        dotColor: selectedNodes.has(node) ? "#FFFFFF" : null,
+        dotColor: selectedNodes.has(node) ? config.networkStyle.selectColor : null,
         insideColor:
           !!state.scope && !!state.scope[model] && state.scope[model].includes(node)
             ? config.networkStyle.scopeColor

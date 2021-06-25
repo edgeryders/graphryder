@@ -23,6 +23,7 @@ export type ModelType = {
 export type ConfigType = {
   networkStyle: {
     scopeColor: string;
+    selectColor: string;
   };
   graphql: { http: string };
   models: { [key: string]: ModelType };
