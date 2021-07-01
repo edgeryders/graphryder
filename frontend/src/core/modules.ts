@@ -29,7 +29,6 @@ export const Modules: Record<string, ModuleType> = {
       graph: getGraph(dataset, {
         nodeLabels: ["code"],
         edgeTypes: ["COOCCURS"],
-        scope: state.scope,
       }),
       // uggly cause to Scope Type beeing a PlainObject where it should use ModelType as key type
       model: "code",
@@ -47,7 +46,6 @@ export const Modules: Record<string, ModuleType> = {
       graph: getGraph(dataset, {
         nodeLabels: ["user"],
         edgeTypes: ["TALKED_OR_QUOTED"],
-        scope: state.scope,
       }),
       model: "user",
       state,

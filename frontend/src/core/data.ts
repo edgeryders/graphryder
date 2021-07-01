@@ -15,13 +15,8 @@ import { NodeKey } from "graphology-types";
 
 export interface DatasetType {
   graph: Graph;
-  stats: {
-    users: number;
-    posts: number;
-    annotations: number;
-    topics: number;
-    codes: number;
-  };
+  stats: { [key: string]: number };
+  inScopeAreaStats?: { [key: string]: number };
 }
 
 export type TableDataType = {
@@ -58,10 +53,12 @@ function changeJsonGraphIds(json: any): any {
   // convert node's key
   const nodes = json.nodes.map((node: any) => {
     let id = node.key;
+    let model: string = "";
     Object.keys(config.models).forEach((label) => {
       if (node.attributes.labels && node.attributes.labels.includes(label)) {
         // create a uniqu identifier from node properties
         id = config.models[label].uniq_id(node.attributes);
+        node.attributes.model = label;
       }
     });
 
@@ -73,7 +70,7 @@ function changeJsonGraphIds(json: any): any {
 
     nodeIds[node.key] = id;
     nodeKeys[id] = node.key;
-    return { ...node, key: id, neo4jId: node.key };
+    return { ...node, key: id, neo4jId: node.key, model };
   });
   const edges = json.edges.map((edge: any) => {
     return { ...edge, source: nodeIds[edge.source], target: nodeIds[edge.target] };
@@ -93,27 +90,16 @@ export async function loadDataset(platform: string, corpora: string, state: Quer
   const jsonGraph = changeJsonGraphIds(cloneDeep(result.data.graph));
 
   graph.import(jsonGraph);
-  const stats = {
-    users: 0,
-    posts: 0,
-    annotations: 0,
-    topics: 0,
-    codes: 0,
-  };
+  const stats: { [key: string]: number } = {};
   graph.forEachNode((key: string, attributes: any) => {
     // compute stats
-    if (attributes.labels.includes("user")) stats.users++;
-    if (attributes.labels.includes("post")) stats.posts++;
-    if (attributes.labels.includes("annotation")) stats.annotations++;
-    if (attributes.labels.includes("topic")) stats.topics++;
-    if (attributes.labels.includes("code")) stats.codes++;
+    stats[attributes.model] = (stats[attributes.model] || 0) + 1;
 
     // make graph style
     Object.keys(config.models).forEach((label) => {
       if (attributes.labels && attributes.labels.includes(label)) {
         graph.setNodeAttribute(key, "color", config.models[label].color);
         graph.setNodeAttribute(key, "label", attributes["properties"][config.models[label].label_field]);
-        graph.setNodeAttribute(key, "model", label);
       }
     });
   });
@@ -121,7 +107,7 @@ export async function loadDataset(platform: string, corpora: string, state: Quer
 }
 
 /**
- * Data types translation / extraction:
+ * Scope application on dataset:
  * ************************************
  */
 
@@ -154,8 +140,72 @@ const postInUserScope = (graph: Graph, userScope: string[] | undefined, post: st
       }))
   );
 };
+/**
+ * This method adds a inScope attribute to input graph's nodes
+ * @param graph
+ * @param scope
+ *
+ */
+export const applyScopeOnGraph = (graph: Graph, scope: Scope | undefined): Omit<DatasetType, "stats"> => {
+  const newGraph = graph.copy();
+  const inScopeStats: { [key: string]: number } = {};
+  newGraph.forEachNode((node, nodeAtts) => {
+    // by default nodes are considered in scope area (i.e. cooccurre with some "inScope" nodes)
+    let inScopeArea: boolean = true;
+    if (scope) {
+      // scope application on code nodes
+      if (nodeAtts.model === "code" && (scope.user || scope.post))
+        inScopeArea = newGraph.inNeighbors(node).some((annotation) => {
+          // does the node has an annotation ?
+          if (newGraph.getNodeAttribute(annotation, "labels").includes("annotation")) {
+            // code <- Anotation -> post
+            const posts = newGraph.outNeighbors(annotation);
+            return (
+              // does posts contains a scope.post?
+              (!scope.post || posts.some((post) => scope.post.includes(post))) && // This AND could a OR depending on how we want multiscope variable to be cumulative or assortative
+              // was on of posts created by a scope.user ?
+              (!scope.user || posts.some((post) => postInUserScope(newGraph, scope.user, post)))
+            );
+          }
+          return false;
+        });
+      // scope application on user node
+      if (nodeAtts.model === "user" && (scope.code || scope.post))
+        inScopeArea = newGraph.outEdges(node).some((outLinkUser) => {
+          // user - [:CREATED] -> post
+          const post =
+            newGraph.getEdgeAttribute(outLinkUser, "type") === "CREATED" ? newGraph.target(outLinkUser) : null;
+          // does the user has created posts  ?
+          return (
+            (!scope.post || (post && scope.post.includes(post))) && // This AND could a OR depending on how we want multiscope variable to be cumulative or assortative
+            // post <- anotation -> code
+            postInCodeScope(newGraph, scope.code, post)
+          );
+        });
+      // scope application on post node
+      if (nodeAtts.model === "post" && (scope.code || scope.user)) {
+        inScopeArea =
+          // post <- [:CREATED] - user
+          postInUserScope(newGraph, scope.user, node) && // This AND could a OR depending on how we want multiscope variable to be cumulative or assortative
+          // post <- anotation -> code
+          postInCodeScope(newGraph, scope.code, node);
+      }
+    }
+    // compute stats
+    if (inScopeArea) inScopeStats[nodeAtts.model] = (inScopeStats[nodeAtts.model] || 0) + 1;
+    // store the flag as node property
+    newGraph.setNodeAttribute(node, "inScopeArea", inScopeArea);
+  });
+  //todo: detect if graph has changed?
+  return { graph: newGraph, inScopeAreaStats: inScopeStats };
+};
+
+/**
+ * Data types translation / extraction:
+ * ************************************
+ */
 const keepNodesFromOption = (graph: Graph, options: GraphOptions) => (node: string, nodeAtts: PlainObject): boolean => {
-  const { nodeLabels, scope } = options;
+  const { nodeLabels } = options;
   // keep only nodes asked in options though label filter
   if (
     nodeLabels.length === 0 ||
@@ -163,54 +213,14 @@ const keepNodesFromOption = (graph: Graph, options: GraphOptions) => (node: stri
   )
     return false;
 
-  // check scope
-  if (scope) {
-    // scope application on code nodes
-    if (nodeAtts.model === "code" && (scope.user || scope.post))
-      return graph.inNeighbors(node).some((annotation) => {
-        // does the node has an annotation ?
-        if (graph.getNodeAttribute(annotation, "labels").includes("annotation")) {
-          // code <- Anotation -> post
-          const posts = graph.outNeighbors(annotation);
-          return (
-            // does posts contains a scope.post?
-            (!scope.post || posts.some((post) => scope.post.includes(post))) && // This AND could a OR depending on how we want multiscope variable to be cumulative or assortative
-            // was on of posts created by a scope.user ?
-            (!scope.user || posts.some((post) => postInUserScope(graph, scope.user, post)))
-          );
-        }
-        return false;
-      });
-    // scope application on user node
-    if (nodeAtts.model === "user" && (scope.code || scope.post))
-      return graph.outEdges(node).some((outLinkUser) => {
-        // user - [:CREATED] -> post
-        const post = graph.getEdgeAttribute(outLinkUser, "type") === "CREATED" ? graph.target(outLinkUser) : null;
-        // does the user has created posts  ?
-        return (
-          (!scope.post || (post && scope.post.includes(post))) && // This AND could a OR depending on how we want multiscope variable to be cumulative or assortative
-          // post <- anotation -> code
-          postInCodeScope(graph, scope.code, post)
-        );
-      });
-    // scope application on post node
-    if (nodeAtts.model === "post" && (scope.code || scope.user)) {
-      return (
-        // post <- [:CREATED] - user
-        postInUserScope(graph, scope.user, node) && // This AND could a OR depending on how we want multiscope variable to be cumulative or assortative
-        // post <- anotation -> code
-        postInCodeScope(graph, scope.code, node)
-      );
-    }
-  }
+  // we use the inScope attribute computed by the dashboard component through applyScopeOnGraph method
   // no scope or no scope applied => we keep the node
-  return true;
+  return "inScopeArea" in nodeAtts ? nodeAtts.inScopeArea : true;
 };
 
 export interface GraphOptions {
   nodeLabels: string[];
   edgeTypes?: string[];
-  scope: Scope | undefined;
 }
 
 function filterGraph(dataset: DatasetType, options: GraphOptions): Graph {
@@ -261,7 +271,7 @@ function getTableDataNaive(dataset: DatasetType, options: TableOptions): TableDa
       else return columns;
     }, {});
   // utils
-  const keepNode = keepNodesFromOption(dataset.graph, { scope: options.scope, nodeLabels: [options.nodeLabel] });
+  const keepNode = keepNodesFromOption(dataset.graph, { nodeLabels: [options.nodeLabel] });
   const tableData: PlainObject[] = [];
   dataset.graph.forEachNode((n, atts) => {
     if (keepNode(n, atts)) {
@@ -273,7 +283,9 @@ function getTableDataNaive(dataset: DatasetType, options: TableOptions): TableDa
 
 // TODO:
 // Check that memoize key is good (and rewrite if needed)
-export const getGraph = memoize(filterGraph, (dataset, options) => JSON.stringify({ ...dataset.stats, ...options }));
+export const getGraph = memoize(filterGraph, (dataset, options) =>
+  JSON.stringify({ stats: dataset.stats, inScopeAreaStats: dataset.inScopeAreaStats, ...options }),
+);
 export const getTableData = memoize(getTableDataNaive, (dataset, options) =>
-  JSON.stringify({ ...dataset.stats, ...options }),
+  JSON.stringify({ stats: dataset.stats, inScopeAreaStats: dataset.inScopeAreaStats, ...options }),
 );

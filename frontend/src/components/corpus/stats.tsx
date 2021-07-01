@@ -17,7 +17,7 @@ const StatsElement: React.FC<StatsBoxProps> = ({ model, total, inScope, verb }) 
         {(!inScope || inScope === 0) && <>{total}</>}
         {inScope && inScope > 0 && (
           <>
-            <span style={{ color: config.networkStyle.scopeColor }}>{inScope}</span>
+            <span style={{ color: model.color }}>{inScope}</span>
             <sub>/{total}</sub>
           </>
         )}
@@ -31,32 +31,34 @@ const StatsElement: React.FC<StatsBoxProps> = ({ model, total, inScope, verb }) 
 };
 
 interface StatsProps {
-  stats: DatasetType["stats"];
+  dataset: DatasetType;
   scope: Scope | undefined;
 }
 
-export const Stats: React.FC<StatsProps> = ({ stats, scope }) => {
+export const Stats: React.FC<StatsProps> = ({ dataset, scope }) => {
+  // TODO: add scope manipulation buttons
+  const { stats, inScopeAreaStats: inScopeStats } = dataset;
   return (
     <>
       <div className="d-flex justify-content-start flex-wrap">
         <StatsElement
           model={config.models.code}
-          total={stats.codes}
-          inScope={scope && scope.code ? scope.code.length : 0}
+          total={stats.code}
+          inScope={(inScopeStats && inScopeStats.code) || 0}
           verb="used in"
         />
-        <StatsElement model={config.models.annotation} total={stats.annotations} verb="describes" />
+        <StatsElement model={config.models.annotation} total={stats.annotation} verb="describes" />
         <StatsElement
           model={config.models.post}
-          total={stats.posts}
-          inScope={scope && scope.post ? scope.post.length : 0}
+          total={stats.post}
+          inScope={(inScopeStats && inScopeStats.post) || 0}
           verb="in"
         />
-        <StatsElement model={config.models.topic} total={stats.topics} verb="written by" />
+        <StatsElement model={config.models.topic} total={stats.topic} verb="written by" />
         <StatsElement
           model={config.models.user}
-          total={stats.users}
-          inScope={scope && scope.user ? scope.user.length : 0}
+          total={stats.user}
+          inScope={(inScopeStats && inScopeStats.user) || 0}
         />
       </div>
     </>

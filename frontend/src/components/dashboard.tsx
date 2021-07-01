@@ -4,7 +4,7 @@ import { useLocation, useHistory } from "react-router-dom";
 import { Stats } from "./corpus/stats";
 import { queryToState, stateToQueryString } from "../core/queryState";
 import { Modules, ModuleType } from "../core/modules";
-import { DatasetType, loadDataset } from "../core/data";
+import { applyScopeOnGraph, DatasetType, loadDataset } from "../core/data";
 import { Loader } from "./loader";
 import { BoxWrapper } from "./box-wrapper";
 import { AvailableModules } from "./dashboard/available-modules";
@@ -15,6 +15,7 @@ import { TableProps } from "./dashboard/table";
 export const Dashboard: FC<{ platform: string; corpus: string }> = ({ platform, corpus }) => {
   const location = useLocation();
   const history = useHistory();
+  //TODO put this in a useEffect ?
   const query = new URLSearchParams(location.search);
   const queryState = queryToState(query);
 
@@ -39,6 +40,14 @@ export const Dashboard: FC<{ platform: string; corpus: string }> = ({ platform, 
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [platform, corpus]);
+
+  // add a useEffect to apply scope when queryState change
+  useEffect(() => {
+    if (!isLoading && dataset) {
+      // set new version of the graph with updated inScope attributes
+      setDataset({ ...dataset, ...applyScopeOnGraph(dataset.graph, queryState.scope) });
+    }
+  }, [isLoading, JSON.stringify(queryState.scope)]);
 
   const renderModule = (module: ModuleType): ReactElement => {
     let content: JSX.Element | null = null;
@@ -88,7 +97,7 @@ export const Dashboard: FC<{ platform: string; corpus: string }> = ({ platform, 
         {!isLoading && !error && (
           <div className="row">
             <div className="col-3 d-flex flex-column">
-              <div>{dataset && <Stats stats={dataset.stats} scope={queryState.scope} />}</div>
+              <div>{dataset && <Stats dataset={dataset} scope={queryState.scope} />}</div>
               <div>
                 <AvailableModules
                   modules={availableModules}
