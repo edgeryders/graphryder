@@ -5,19 +5,19 @@ import { ModelType, Scope } from "../../types";
 
 interface StatsBoxProps {
   model: ModelType;
-  inScope?: number;
+  inScopeArea?: number;
   total: number;
   verb?: string;
 }
-const StatsElement: React.FC<StatsBoxProps> = ({ model, total, inScope, verb }) => {
+const StatsElement: React.FC<StatsBoxProps> = ({ model, total, inScopeArea, verb }) => {
   const label = model.name + (total > 0 ? "s" : "");
   return (
     <span className="d-flex  align-items-center">
       <span className="fs-2" style={{ marginRight: "0.5rem", color: model.color }}>
-        {(!inScope || inScope === 0) && <>{total}</>}
-        {inScope && inScope > 0 && (
+        {(!inScopeArea || inScopeArea === total) && <>{total}</>}
+        {inScopeArea && inScopeArea > 0 && inScopeArea !== total && (
           <>
-            <span style={{ color: model.color }}>{inScope}</span>
+            <span style={{ color: model.color }}>{inScopeArea}</span>
             <sub>/{total}</sub>
           </>
         )}
@@ -44,21 +44,21 @@ export const Stats: React.FC<StatsProps> = ({ dataset, scope }) => {
         <StatsElement
           model={config.models.code}
           total={stats.code}
-          inScope={(inScopeStats && inScopeStats.code) || 0}
+          inScopeArea={(inScopeStats && inScopeStats.code) || 0}
           verb="used in"
         />
         <StatsElement model={config.models.annotation} total={stats.annotation} verb="describes" />
         <StatsElement
           model={config.models.post}
           total={stats.post}
-          inScope={(inScopeStats && inScopeStats.post) || 0}
+          inScopeArea={(inScopeStats && inScopeStats.post) || 0}
           verb="in"
         />
         <StatsElement model={config.models.topic} total={stats.topic} verb="written by" />
         <StatsElement
           model={config.models.user}
           total={stats.user}
-          inScope={(inScopeStats && inScopeStats.user) || 0}
+          inScopeArea={(inScopeStats && inScopeStats.user) || 0}
         />
       </div>
     </>
