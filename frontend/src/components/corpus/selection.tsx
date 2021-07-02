@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import gql from "graphql-tag";
 import { Link } from "react-router-dom";
 import { client } from "../../core/client";
-import { BoxWrapper } from "./../box-wrapper";
 
 interface PlatformWithCorpus {
   name: string;

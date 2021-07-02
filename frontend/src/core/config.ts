@@ -1,4 +1,3 @@
-import { PlainObject } from "sigma/types";
 import { ConfigType } from "../types";
 
 const config: ConfigType = {

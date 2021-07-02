@@ -4,7 +4,6 @@ import { Settings } from "sigma/settings";
 import Graph from "graphology";
 import { useSigmaContext } from "./context";
 import { EventHandlers } from "./index";
-import { isEqual } from "lodash";
 
 export function useSigma(): Sigma {
   return useSigmaContext().sigma;

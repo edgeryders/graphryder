@@ -1,5 +1,5 @@
 import React, { FC } from "react";
-import { useHistory, useLocation } from "react-router";
+import { useHistory } from "react-router";
 import { GoDiffAdded, GoDiffRemoved } from "react-icons/go";
 import { QueryState, stateToQueryString } from "../../../core/queryState";
 import config from "../../../core/config";

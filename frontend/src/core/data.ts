@@ -1,4 +1,4 @@
-import Graph, { DirectedGraph, UndirectedGraph } from "graphology";
+import Graph from "graphology";
 import { updateGraphKeys } from "graphology-utils";
 import { cloneDeep, memoize } from "lodash";
 import gql from "graphql-tag";
@@ -7,7 +7,6 @@ import config from "./config";
 import { QueryState } from "./queryState";
 import { PlainObject } from "sigma/types";
 import { Scope, TableColumn } from "../types";
-import { NodeKey } from "graphology-types";
 
 /**
  * Data types:
