@@ -145,10 +145,15 @@ export const NodeLegend: FC<ScopeActionsprops> = (props: ScopeActionsprops) => {
       </div>
       {selectedIds.size > 0 && (
         <div>
-          <button className="selection-action btn btn-link">
-            <i onClick={() => setSelectedNodes(new Set())} title="Cancel selection">
-              <TiCancel /> cancel selection
+          <button
+            className="selection-action btn btn-link"
+            onClick={() => setSelectedNodes(new Set())}
+            title="Cancel selection"
+          >
+            <i>
+              <TiCancel />
             </i>
+            cancel selection
           </button>
         </div>
       )}

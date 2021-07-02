@@ -1,7 +1,7 @@
 import React, { FC, ReactElement, useEffect, useState } from "react";
 import { useLocation, useHistory } from "react-router-dom";
 
-import { Stats } from "./corpus/stats";
+import { ScopeBox, Stats } from "./corpus/stats";
 import { queryToState, stateToQueryString } from "../core/queryState";
 import { Modules, ModuleType } from "../core/modules";
 import { applyScopeOnGraph, DatasetType, loadDataset } from "../core/data";
@@ -97,6 +97,9 @@ export const Dashboard: FC<{ platform: string; corpus: string }> = ({ platform, 
         {!isLoading && !error && (
           <div className="row">
             <div className="col-3 d-flex flex-column">
+              <div>
+                <ScopeBox state={queryState} />
+              </div>
               <div>{dataset && <Stats dataset={dataset} scope={queryState.scope} />}</div>
               <div>
                 <AvailableModules

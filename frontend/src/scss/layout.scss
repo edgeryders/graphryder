@@ -37,4 +37,15 @@
   .full-height {
     height: calc(100vh - #{$header-height} - #{$spacer});
   }
+  .btn {
+    padding: 0.2em;
+    * {
+      vertical-align: text-bottom;
+    }
+  }
+  .btn.btn-link {
+    * {
+      vertical-align: middle;
+    }
+  }
 }

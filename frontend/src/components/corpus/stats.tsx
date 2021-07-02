@@ -1,7 +1,51 @@
+import { keys, omit, toPairs } from "lodash";
 import React from "react";
 import config from "../../core/config";
 import { DatasetType } from "../../core/data";
 import { ModelType, Scope } from "../../types";
+import { GoDiffRemoved } from "react-icons/go";
+import { useHistory } from "react-router-dom";
+import { QueryState, stateToQueryString } from "../../core/queryState";
+
+interface ScopeBoxProps {
+  state: QueryState;
+}
+
+export const ScopeBox: React.FC<ScopeBoxProps> = ({ state }) => {
+  const history = useHistory();
+  return (
+    <>
+      {state.scope && keys(state.scope).length > 0 && (
+        <div className="scope-box">
+          <h4>In scope:</h4>
+          {toPairs(state.scope)
+            .filter(([model, idsInScope]) => idsInScope.length > 0)
+            .map(([model, idsInScope]) => (
+              <button
+                key={model}
+                className="btn"
+                style={{ color: "white", backgroundColor: config.models[model].color }}
+                onClick={() => {
+                  //delete model scope
+                  history.push({
+                    search: stateToQueryString({
+                      ...state,
+                      scope: omit(state.scope, model),
+                    }),
+                  });
+                }}
+              >
+                <i>
+                  <GoDiffRemoved />
+                </i>
+                {idsInScope.length} {model}
+              </button>
+            ))}
+        </div>
+      )}
+    </>
+  );
+};
 
 interface StatsBoxProps {
   model: ModelType;

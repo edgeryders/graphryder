@@ -64,7 +64,10 @@ export const ScopeActions: FC<ScopeActionsprops> = (props: ScopeActionsprops) =>
           });
         }}
       >
-        <GoDiffRemoved /> {selectedInScope.size} selected already in scope{" "}
+        <i>
+          <GoDiffRemoved />
+        </i>{" "}
+        {selectedInScope.size} selected already in scope{" "}
       </button>
     </div>
   );
