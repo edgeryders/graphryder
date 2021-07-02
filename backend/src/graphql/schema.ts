@@ -1,8 +1,8 @@
 import GraphQLJSON, { GraphQLJSONObject } from "graphql-type-json";
 import { GraphQLResolveInfo, GraphQLObjectType } from "graphql";
 import gql from "graphql-tag";
+import { cypherToGraph } from "graphology-neo4j";
 import { ResolverContext } from "./index";
-import { cypherToGraph } from "../utils";
 import { getLogger } from "../logger";
 
 // logger
@@ -284,7 +284,7 @@ export const resolvers = {
           p2=(post)<-[:CREATED]-(user:user),
           p3=(user:user)-[:TALKED_OR_QUOTED*0..1]->(user2:user),
           p4=(post)<-[:ANNOTATES*0..1]-(a:annotation)-[:REFERS_TO*0..1]->(c:code)-[:IN_CORPUS]->(corpus)
-          WHERE (topic)-[:TAGGED_WITH]->(corpus) AND 
+          WHERE (topic)-[:TAGGED_WITH]->(corpus) AND
                 exists((user2)-[:CREATED]->()-[:IN_TOPIC]->()-[:TAGGED_WITH]->(corpus))
           RETURN p1, p2, p3, p4, [(c)-[r:COOCCURS {corpus: $corpora}]->(c2) | [r, c2]]',
           {corpora:$corpora, platform:$platform},

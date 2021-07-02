@@ -13,7 +13,7 @@ const app: Express = express();
 
 // Create ping route
 const router = express.Router();
-router.get("/ping", function(req, res) {
+router.get("/ping", function (req, res) {
   res.send("pong");
 });
 app.use(router);

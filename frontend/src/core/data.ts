@@ -1,4 +1,5 @@
 import Graph, { DirectedGraph, UndirectedGraph } from "graphology";
+import { updateGraphKeys } from "graphology-utils";
 import { cloneDeep, memoize } from "lodash";
 import gql from "graphql-tag";
 import { client } from "./client";
@@ -47,62 +48,37 @@ const GRAPHQL_GET_GRAPH = gql`
   }
 `;
 
-function changeJsonGraphIds(json: any): any {
-  const nodeIds: { [key: string]: string } = {};
-  const nodeKeys: { [key: string]: string } = {};
-  // convert node's key
-  const nodes = json.nodes.map((node: any) => {
-    let id = node.key;
-    let model: string = "";
-    Object.keys(config.models).forEach((label) => {
-      if (node.attributes.labels && node.attributes.labels.includes(label)) {
-        // create a uniqu identifier from node properties
-        id = config.models[label].uniq_id(node.attributes);
-        node.attributes.model = label;
-      }
-    });
-
-    // we already have seen this id
-    if (nodeKeys[id])
-      console.debug(
-        `duplicated uniq id ${id} for keys ${nodeKeys[id]} and ${node.key}\n incoming ${JSON.stringify(node)}`,
-      );
-
-    nodeIds[node.key] = id;
-    nodeKeys[id] = node.key;
-    return { ...node, key: id, neo4jId: node.key, model };
-  });
-  const edges = json.edges.map((edge: any) => {
-    return { ...edge, source: nodeIds[edge.source], target: nodeIds[edge.target] };
-  });
-  return { ...json, nodes, edges };
-}
-
 export async function loadDataset(platform: string, corpora: string, state: QueryState): Promise<DatasetType> {
-  const graph = new Graph({ multi: true, type: "directed", allowSelfLoops: true });
+  // Construct the graph from the graphql query
   const result = await client.query({
     query: GRAPHQL_GET_GRAPH,
     variables: { platform, corpora },
   });
+  const graphReceived = new Graph({ multi: true, type: "directed", allowSelfLoops: true });
+  graphReceived.import(cloneDeep(result.data.graph));
 
-  // deepclone is due to graphql that returns a readonly instance
-  // changeJsonGraphIds is for replacing neo4j ids by business ids
-  const jsonGraph = changeJsonGraphIds(cloneDeep(result.data.graph));
+  // change ids of the graph : replace neo4j one by business one
+  const graph = updateGraphKeys(
+    graphReceived,
+    (key, attr) => `${attr.platform}_${attr["@labels"].join("|")}_${attr.discourse_id}`,
+    (key) => key,
+  );
 
-  graph.import(jsonGraph);
+  // Compute graph stats and style
   const stats: { [key: string]: number } = {};
   graph.forEachNode((key: string, attributes: any) => {
-    // compute stats
-    stats[attributes.model] = (stats[attributes.model] || 0) + 1;
-
-    // make graph style
     Object.keys(config.models).forEach((label) => {
-      if (attributes.labels && attributes.labels.includes(label)) {
+      if (attributes["@labels"] && attributes["@labels"].includes(label)) {
+        // compute stats
+        stats[label] = (stats[label] || 0) + 1;
+        // set graph style
+        graph.setNodeAttribute(key, "model", label);
         graph.setNodeAttribute(key, "color", config.models[label].color);
-        graph.setNodeAttribute(key, "label", attributes["properties"][config.models[label].label_field]);
+        graph.setNodeAttribute(key, "label", attributes[config.models[label].label_field]);
       }
     });
   });
+
   return Promise.resolve({ graph, stats });
 }
 
@@ -117,11 +93,12 @@ const postInCodeScope = (graph: Graph, codeScope: string[] | undefined, post: st
     !codeScope ||
     (!!post &&
       graph.inEdges(post).some((inLinkPost) => {
-        const anotation = graph.getEdgeAttribute(inLinkPost, "type") === "ANNOTATES" ? graph.source(inLinkPost) : null;
+        const anotation = graph.getEdgeAttribute(inLinkPost, "@type") === "ANNOTATES" ? graph.source(inLinkPost) : null;
         return (
           anotation &&
           graph.outEdges(anotation).some((outLinkAnot) => {
-            const code = graph.getEdgeAttribute(outLinkAnot, "type") === "REFERS_TO" ? graph.target(outLinkAnot) : null;
+            const code =
+              graph.getEdgeAttribute(outLinkAnot, "@type") === "REFERS_TO" ? graph.target(outLinkAnot) : null;
             // does tu user created a post which was annotated by a scope code?
             return code && codeScope.includes(code);
           })
@@ -136,7 +113,9 @@ const postInUserScope = (graph: Graph, userScope: string[] | undefined, post: st
       graph.inEdges(post).some((inLinkPost) => {
         // post <- [:CREATED] - user
         // was this post created by a scope.user?
-        return graph.getEdgeAttribute(inLinkPost, "type") === "CREATED" && userScope.includes(graph.source(inLinkPost));
+        return (
+          graph.getEdgeAttribute(inLinkPost, "@type") === "CREATED" && userScope.includes(graph.source(inLinkPost))
+        );
       }))
   );
 };
@@ -157,7 +136,7 @@ export const applyScopeOnGraph = (graph: Graph, scope: Scope | undefined): Omit<
       if (nodeAtts.model === "code" && (scope.user || scope.post))
         inScopeArea = newGraph.inNeighbors(node).some((annotation) => {
           // does the node has an annotation ?
-          if (newGraph.getNodeAttribute(annotation, "labels").includes("annotation")) {
+          if (newGraph.getNodeAttribute(annotation, "@labels").includes("annotation")) {
             // code <- Anotation -> post
             const posts = newGraph.outNeighbors(annotation);
             return (
@@ -174,7 +153,7 @@ export const applyScopeOnGraph = (graph: Graph, scope: Scope | undefined): Omit<
         inScopeArea = newGraph.outEdges(node).some((outLinkUser) => {
           // user - [:CREATED] -> post
           const post =
-            newGraph.getEdgeAttribute(outLinkUser, "type") === "CREATED" ? newGraph.target(outLinkUser) : null;
+            newGraph.getEdgeAttribute(outLinkUser, "@type") === "CREATED" ? newGraph.target(outLinkUser) : null;
           // does the user has created posts  ?
           return (
             (!scope.post || (post && scope.post.includes(post))) && // This AND could a OR depending on how we want multiscope variable to be cumulative or assortative
@@ -209,7 +188,7 @@ const keepNodesFromOption = (graph: Graph, options: GraphOptions) => (node: stri
   // keep only nodes asked in options though label filter
   if (
     nodeLabels.length === 0 ||
-    (nodeLabels.length !== 0 && !nodeLabels.some((t: string) => nodeAtts.labels.includes(t)))
+    (nodeLabels.length !== 0 && !nodeLabels.some((t: string) => nodeAtts["@labels"].includes(t)))
   )
     return false;
 
@@ -228,7 +207,7 @@ function filterGraph(dataset: DatasetType, options: GraphOptions): Graph {
   // utils
   const keepNode = keepNodesFromOption(dataset.graph, options);
   const keepEdge = (edgeAtts: PlainObject): boolean =>
-    !!options.edgeTypes && (options.edgeTypes.length === 0 || options.edgeTypes.includes(edgeAtts.type));
+    !!options.edgeTypes && (options.edgeTypes.length === 0 || options.edgeTypes.includes(edgeAtts["@type"]));
 
   // iterate first on nodes to keep isolated node into filtered graph
   dataset.graph.forEachNode((node, atts) => {
@@ -264,8 +243,7 @@ function getTableDataNaive(dataset: DatasetType, options: TableOptions): TableDa
   // column preparation
   const columnsFromAttributes = (node: string, nodeAttributes: PlainObject): PlainObject =>
     config.models[options.nodeLabel].tableColumns.reduce((columns, column) => {
-      if (nodeAttributes.properties[column.property])
-        return { ...columns, [column.property]: nodeAttributes.properties[column.property] };
+      if (nodeAttributes[column.property]) return { ...columns, [column.property]: nodeAttributes[column.property] };
       else if (column.generateFromNode)
         return { ...columns, [column.property]: column.generateFromNode(dataset.graph, node) };
       else return columns;

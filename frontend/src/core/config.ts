@@ -1,9 +1,6 @@
 import { PlainObject } from "sigma/types";
 import { ConfigType } from "../types";
 
-const generic_uniq_id = (node: { labels: string[]; properties: PlainObject }) =>
-  `${node.properties.platform}_${node.labels.join("|")}_${node.properties.discourse_id}`;
-
 const config: ConfigType = {
   networkStyle: {
     scopeColor: "#f15c33",
@@ -19,7 +16,6 @@ const config: ConfigType = {
       color: "#0292D5",
       icon: "code",
       label_field: "name",
-      uniq_id: generic_uniq_id,
       tableColumns: [
         { property: "name", label: "Name" },
         { property: "description", label: "Description" },
@@ -31,8 +27,8 @@ const config: ConfigType = {
           generateFromNode: (graph, node): number => {
             let nb_annotation = 0;
             graph.forEachOutEdgeUntil(node, (e, atts, source, target) => {
-              if (atts.type === "IN_CORPUS") {
-                nb_annotation = atts.properties.annotation_count;
+              if (atts["@type"] === "IN_CORPUS") {
+                nb_annotation = atts.annotation_count;
                 return true;
               }
               return false;
@@ -48,7 +44,6 @@ const config: ConfigType = {
       color: "#EA37B0",
       icon: "file-alt",
       label_field: "topic_title",
-      uniq_id: generic_uniq_id,
       tableColumns: [
         { property: "raw", label: "Content" },
         { property: "postUrl", label: "Post url", type: "url" },
@@ -65,7 +60,6 @@ const config: ConfigType = {
       color: "#6AD74D",
       icon: "user-alt",
       label_field: "username",
-      uniq_id: generic_uniq_id,
       tableColumns: [
         { property: "username", label: "Name" },
         { property: "profileUrl", label: "Profile url", type: "url" },
@@ -77,7 +71,6 @@ const config: ConfigType = {
       color: "#555555",
       icon: "pencil-alt",
       label_field: "discourse_id",
-      uniq_id: generic_uniq_id,
       tableColumns: [
         { property: "quote", label: "Quote" },
         { property: "created_at", label: "Created at", type: "date" },
@@ -90,7 +83,6 @@ const config: ConfigType = {
       color: "#555555",
       icon: "question",
       label_field: "title",
-      uniq_id: generic_uniq_id,
       tableColumns: [],
     },
   },

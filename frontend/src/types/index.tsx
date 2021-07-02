@@ -16,7 +16,6 @@ export type ModelType = {
   color: string;
   icon: string;
   label_field: string;
-  uniq_id: (node: { labels: string[]; properties: PlainObject }) => string;
   tableColumns: TableColumn[];
 };
 
