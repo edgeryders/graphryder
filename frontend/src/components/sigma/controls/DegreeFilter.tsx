@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { NodeKey } from "graphology-types";
-import { useSigma } from "../hooks";
+import { useSigma } from "react-sigma-v2";
 import { max, min, uniq } from "lodash";
 
 interface Props {}

@@ -4,7 +4,7 @@
  * a disc inside the nodes.
  */
 import { AbstractNodeProgram, RenderNodeParams } from "sigma/rendering/webgl/programs/common/node";
-import { NodeAttributes } from "sigma/types";
+import { NodeDisplayData } from "sigma/types";
 import { floatColor } from "sigma/utils";
 // eslint-disable-next-line import/no-webpack-loader-syntax
 import raw from "raw.macro";
@@ -49,7 +49,7 @@ export default class NodeWithCirclesProgram extends AbstractNodeProgram {
     );
   }
 
-  process(data: NodeAttributes & { insideColor: string; dotColor: string }, hidden: boolean, offset: number): void {
+  process(data: NodeDisplayData & { insideColor: string; dotColor: string }, hidden: boolean, offset: number): void {
     let i = offset * POINTS * ATTRIBUTES;
     const array = this.array;
 

@@ -4,7 +4,6 @@ import Graph from "graphology";
 import { circular } from "graphology-layout";
 import {
   ControlsContainer,
-  DegreeFilter,
   ForceAtlasControl,
   SigmaContainer,
   ZoomControl,
@@ -12,7 +11,7 @@ import {
   useRegisterEvents,
   useLoadGraph,
   useSetSettings,
-} from "../sigma";
+} from "react-sigma-v2";
 import { QueryState, queryToState } from "../../core/queryState";
 import { useLocation } from "react-router";
 import config from "../../core/config";
@@ -21,6 +20,7 @@ import drawHoverWithCircles from "../sigma/node-with-circles/node-with-circles-h
 import { random, sortedUniq, sum, values } from "lodash";
 import { PlainObject } from "sigma/types";
 import { NodeLegend } from "../sigma/controls/NodeLegend";
+import { DegreeFilter } from "../sigma/controls/DegreeFilter";
 
 export interface SigmaProps {
   graph: Graph;

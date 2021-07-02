@@ -1,4 +1,4 @@
-import { NodeAttributes, PartialButFor } from "sigma/types";
+import { NodeDisplayData, PartialButFor } from "sigma/types";
 
 const PI_TIMES_2 = Math.PI * 2;
 
@@ -7,7 +7,7 @@ const PI_TIMES_2 = Math.PI * 2;
  */
 export default function drawNodeWithCircles(
   context: CanvasRenderingContext2D,
-  data: PartialButFor<NodeAttributes, "x" | "y" | "size" | "color">,
+  data: PartialButFor<NodeDisplayData, "x" | "y" | "size" | "color">,
 ): void {
   context.fillStyle = data.color;
   context.beginPath();

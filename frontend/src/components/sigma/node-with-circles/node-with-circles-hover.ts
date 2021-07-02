@@ -7,13 +7,13 @@
  * @module
  */
 import { Settings } from "sigma/settings";
-import { NodeAttributes, PartialButFor } from "sigma/types";
+import { NodeDisplayData, PartialButFor } from "sigma/types";
 import drawNodeWithCircles from "./node-with-circles";
 import drawLabel from "sigma/rendering/canvas/label";
 
 export default function drawHoverWithCircles(
   context: CanvasRenderingContext2D,
-  data: PartialButFor<NodeAttributes, "x" | "y" | "size" | "label" | "color">,
+  data: PartialButFor<NodeDisplayData, "x" | "y" | "size" | "label" | "color">,
   settings: Settings,
 ): void {
   const size = settings.labelSize,
