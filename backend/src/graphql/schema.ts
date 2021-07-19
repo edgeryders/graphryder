@@ -285,7 +285,8 @@ export const resolvers = {
           p3=(user:user)-[:TALKED_OR_QUOTED*0..1]->(user2:user),
           p4=(post)<-[:ANNOTATES*0..1]-(a:annotation)-[:REFERS_TO*0..1]->(c:code)-[:IN_CORPUS]->(corpus)
           WHERE (topic)-[:TAGGED_WITH]->(corpus) AND
-                exists((user2)-[:CREATED]->()-[:IN_TOPIC]->()-[:TAGGED_WITH]->(corpus))
+                exists((user2)-[:CREATED]->()-[:IN_TOPIC]->()-[:TAGGED_WITH]->(corpus)) AND
+                user <> user2
           RETURN p1, p2, p3, p4, [(c)-[r:COOCCURS {corpus: $corpora}]->(c2) | [r, c2]]',
           {corpora:$corpora, platform:$platform},
           "",
