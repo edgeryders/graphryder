@@ -81,27 +81,27 @@ interface StatsProps {
 
 export const Stats: React.FC<StatsProps> = ({ dataset, scope }) => {
   // TODO: add scope manipulation buttons
-  const { stats, inScopeAreaStats: inScopeStats } = dataset;
+  const { nodeStats, inScopeAreaStats: inScopeStats } = dataset;
   return (
     <>
       <div className="d-flex justify-content-start flex-wrap">
         <StatsElement
           model={config.models.code}
-          total={stats.code}
+          total={nodeStats.code}
           inScopeArea={(inScopeStats && inScopeStats.code) || 0}
           verb="used in"
         />
-        <StatsElement model={config.models.annotation} total={stats.annotation} verb="describes" />
+        <StatsElement model={config.models.annotation} total={nodeStats.annotation} verb="describes" />
         <StatsElement
           model={config.models.post}
-          total={stats.post}
+          total={nodeStats.post}
           inScopeArea={(inScopeStats && inScopeStats.post) || 0}
           verb="in"
         />
-        <StatsElement model={config.models.topic} total={stats.topic} verb="written by" />
+        <StatsElement model={config.models.topic} total={nodeStats.topic} verb="written by" />
         <StatsElement
           model={config.models.user}
-          total={stats.user}
+          total={nodeStats.user}
           inScopeArea={(inScopeStats && inScopeStats.user) || 0}
         />
       </div>

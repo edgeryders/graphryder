@@ -56,7 +56,7 @@ export const Dashboard: FC<{ platform: string; corpus: string }> = ({ platform, 
       content = <Loader />;
     } else {
       const props: NetworkProps | TableProps = module.getProps(queryState, dataset);
-      nbItems = props && "data" in props ? props.data.rows.length : props.graph.order;
+      nbItems = props && "data" in props ? props.data.rows.length : props.graphData.graph.order;
       const Component = module.component;
       content = <Component {...props} />;
     }

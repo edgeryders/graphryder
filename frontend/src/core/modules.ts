@@ -26,7 +26,7 @@ export const Modules: Record<string, ModuleType> = {
     model: config.models.code,
     visible: false,
     getProps: (state, dataset): NetworkProps => ({
-      graph: getGraph(dataset, {
+      graphData: getGraph(dataset, {
         nodeLabels: ["code"],
         edgeTypes: ["COOCCURS"],
       }),
@@ -43,7 +43,7 @@ export const Modules: Record<string, ModuleType> = {
     component: Network,
     visible: false,
     getProps: (state, dataset): NetworkProps => ({
-      graph: getGraph(dataset, {
+      graphData: getGraph(dataset, {
         nodeLabels: ["user"],
         edgeTypes: ["TALKED_OR_QUOTED"],
       }),

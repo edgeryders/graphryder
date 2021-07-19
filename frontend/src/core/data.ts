@@ -15,7 +15,9 @@ import { Scope, TableColumn } from "../types";
 
 export interface DatasetType {
   graph: Graph;
-  stats: { [key: string]: number };
+  // number of nodes by label for legends
+  nodeStats: { [key: string]: number };
+  // number of nodes by label in scope area for legends
   inScopeAreaStats?: { [key: string]: number };
 }
 
@@ -64,12 +66,12 @@ export async function loadDataset(platform: string, corpora: string, state: Quer
   );
 
   // Compute graph stats and style
-  const stats: { [key: string]: number } = {};
+  const nodeStats: { [key: string]: number } = {};
   graph.forEachNode((key: string, attributes: any) => {
     Object.keys(config.models).forEach((label) => {
       if (attributes["@labels"] && attributes["@labels"].includes(label)) {
         // compute stats
-        stats[label] = (stats[label] || 0) + 1;
+        nodeStats[label] = (nodeStats[label] || 0) + 1;
         // set graph style
         graph.setNodeAttribute(key, "model", label);
         graph.setNodeAttribute(key, "color", config.models[label].color);
@@ -78,7 +80,7 @@ export async function loadDataset(platform: string, corpora: string, state: Quer
     });
   });
 
-  return Promise.resolve({ graph, stats });
+  return Promise.resolve({ graph, nodeStats });
 }
 
 /**
@@ -124,7 +126,10 @@ const postInUserScope = (graph: Graph, userScope: string[] | undefined, post: st
  * @param scope
  *
  */
-export const applyScopeOnGraph = (graph: Graph, scope: Scope | undefined): Omit<DatasetType, "stats"> => {
+export const applyScopeOnGraph = (
+  graph: Graph,
+  scope: Scope | undefined,
+): { graph: Graph; inScopeAreaStats: { [key: string]: number } } => {
   const newGraph = graph.copy();
   const inScopeStats: { [key: string]: number } = {};
   newGraph.forEachNode((node, nodeAtts) => {
@@ -201,7 +206,10 @@ export interface GraphOptions {
   edgeTypes?: string[];
 }
 
-function filterGraph(dataset: DatasetType, options: GraphOptions): Graph {
+function filterGraph(
+  dataset: DatasetType,
+  options: GraphOptions,
+): { graph: Graph; edgeWeightBoundaries: { min: number; max: number } } {
   const graph = new Graph({ type: "directed", allowSelfLoops: true });
   // utils
   const keepNode = keepNodesFromOption(dataset.graph, options);
@@ -214,11 +222,17 @@ function filterGraph(dataset: DatasetType, options: GraphOptions): Graph {
       graph.addNode(node, atts);
     }
   });
+  const edgeWeightBoundaries = { min: Infinity, max: -Infinity };
   graph.forEachNode((node) => {
     dataset.graph.forEachOutEdge(node, (edge, atts, source, target, sourceAtts, targetAtts) => {
       try {
-        if (graph.hasNode(source) && graph.hasNode(target) && keepEdge(atts))
+        if (graph.hasNode(source) && graph.hasNode(target) && keepEdge(atts)) {
           graph.addEdgeWithKey(edge, source, target, atts);
+          if (atts.count) {
+            edgeWeightBoundaries.min = Math.min(edgeWeightBoundaries.min, atts.count);
+            edgeWeightBoundaries.max = Math.max(edgeWeightBoundaries.max, atts.count);
+          }
+        }
       } catch (e) {
         console.error(`duplicated edge ${edge}`);
         console.debug(edge, source, target, graph.edge(source, target), graph.getEdgeAttributes(source, target), atts);
@@ -226,11 +240,11 @@ function filterGraph(dataset: DatasetType, options: GraphOptions): Graph {
     });
   });
   console.debug(
-    `fitlered dataset graph (${dataset.graph.size} ${dataset.graph.order}) to ${graph.size} ${
-      graph.order
-    } using ${JSON.stringify(options, undefined, 2)}`,
+    `fitlered dataset graph (${dataset.graph.size} ${dataset.graph.order}) to ${graph.size} ${graph.order} weight [${
+      edgeWeightBoundaries.min
+    },${edgeWeightBoundaries.max}]using ${JSON.stringify(options, undefined, 2)}`,
   );
-  return graph;
+  return { graph, edgeWeightBoundaries };
 }
 
 export interface TableOptions {
@@ -261,8 +275,8 @@ function getTableDataNaive(dataset: DatasetType, options: TableOptions): TableDa
 // TODO:
 // Check that memoize key is good (and rewrite if needed)
 export const getGraph = memoize(filterGraph, (dataset, options) =>
-  JSON.stringify({ stats: dataset.stats, inScopeAreaStats: dataset.inScopeAreaStats, ...options }),
+  JSON.stringify({ stats: dataset.nodeStats, inScopeAreaStats: dataset.inScopeAreaStats, ...options }),
 );
 export const getTableData = memoize(getTableDataNaive, (dataset, options) =>
-  JSON.stringify({ stats: dataset.stats, inScopeAreaStats: dataset.inScopeAreaStats, ...options }),
+  JSON.stringify({ stats: dataset.nodeStats, inScopeAreaStats: dataset.inScopeAreaStats, ...options }),
 );

@@ -20,7 +20,7 @@ import drawHoverWithCircles from "../sigma/node-with-circles/node-with-circles-h
 import { random, sortedUniq, sum, values } from "lodash";
 import { PlainObject } from "sigma/types";
 import { NodeLegend } from "../sigma/controls/NodeLegend";
-import { DegreeFilter } from "../sigma/controls/DegreeFilter";
+import { DegreeFilter } from "../sigma/controls/EdgeWeightFilter";
 
 export interface SigmaProps {
   graph: Graph;
@@ -178,12 +178,12 @@ export const Sigma: React.FC<SigmaProps> = ({ graph, selectedNodes, setSelectedN
 };
 
 export type NetworkProps = {
-  graph: Graph;
+  graphData: { graph: Graph; edgeWeightBoundaries: { min: number; max: number } };
   model: string;
   state: QueryState;
 };
 
-export const Network: FC<NetworkProps> = ({ graph, model, state }) => {
+export const Network: FC<NetworkProps> = ({ graphData: { graph, edgeWeightBoundaries }, model, state }) => {
   // selection management
   const [selectedNodes, setSelectedNodes] = useState<ReadonlySet<string>>(new Set());
   const [FA2Autorun, setFA2Autorun] = useState<number>(2000);
@@ -205,7 +205,8 @@ export const Network: FC<NetworkProps> = ({ graph, model, state }) => {
         <ForceAtlasControl autoRunFor={FA2Autorun} />
       </ControlsContainer>
       <ControlsContainer position={"bottom-right"}>
-        <DegreeFilter />
+        {/* graph props is added only to recyl */}
+        <DegreeFilter min={edgeWeightBoundaries.min} max={edgeWeightBoundaries.max} />
       </ControlsContainer>
       <ControlsContainer position={"bottom-left"}>
         <div className="scope">
