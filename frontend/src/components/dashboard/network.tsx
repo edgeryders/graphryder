@@ -164,8 +164,9 @@ export const Sigma: React.FC<SigmaProps> = ({ graph, selectedNodes, setSelectedN
       nodeReducer,
       edgeReducer: (edge: any, data: any) => {
         const sigmaGraph = sigma.getGraph();
-        const newData = { ...data, hidden: false };
-        if (hoveredNode && !sigmaGraph.extremities(edge).includes(hoveredNode)) newData.hidden = true;
+        const newData = { ...data };
+        // hide edges not attached to hoverednode
+        if (!!data.hidden && hoveredNode && !sigmaGraph.extremities(edge).includes(hoveredNode)) newData.hidden = true;
         return newData;
       },
       hoverRenderer: (context, data, settings) => {
