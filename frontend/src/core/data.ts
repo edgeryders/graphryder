@@ -61,7 +61,7 @@ export async function loadDataset(platform: string, corpora: string, state: Quer
   // change ids of the graph : replace neo4j one by business one
   const graph = updateGraphKeys(
     graphReceived,
-    (key, attr) => `${attr.platform}_${attr["@labels"].join("|")}_${attr.discourse_id}`,
+    (key, attr) => `${attr["@labels"].join("|")}_${attr.discourse_id}`,
     (key) => key,
   );
 
