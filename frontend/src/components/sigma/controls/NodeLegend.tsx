@@ -1,9 +1,11 @@
 import React, { FC } from "react";
 import { useHistory } from "react-router";
 import { GoDiffAdded, GoDiffRemoved } from "react-icons/go";
+import { MdSelectAll } from "react-icons/md";
 import { QueryState, stateToQueryString } from "../../../core/queryState";
 import config from "../../../core/config";
 import { TiCancel } from "react-icons/ti";
+import { useSigma } from "react-sigma-v2/lib/esm";
 
 export interface ScopeActionsprops {
   model: string;
@@ -63,6 +65,7 @@ export const NodeLegend: FC<ScopeActionsprops> = (props: ScopeActionsprops) => {
   const { model, selectedIds, state, setSelectedNodes } = props;
 
   const history = useHistory();
+  const sigma = useSigma();
 
   const scope = state.scope && state.scope[model];
 
@@ -142,6 +145,25 @@ export const NodeLegend: FC<ScopeActionsprops> = (props: ScopeActionsprops) => {
             </i>
           </button>
         </div>
+      </div>
+      <div>
+        <button
+          className="selection-action btn btn-link"
+          onClick={() => {
+            const visibleNodes = new Set<string>();
+            const graph = sigma.getGraph();
+            graph.forEachNode((n, atts) => {
+              if (!atts.hidden) visibleNodes.add(n);
+            });
+            setSelectedNodes(visibleNodes);
+          }}
+          title="Select all visible nodes"
+        >
+          <i>
+            <MdSelectAll />
+          </i>
+          select all nodes
+        </button>
       </div>
       {selectedIds.size > 0 && (
         <div>
