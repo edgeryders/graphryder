@@ -124,6 +124,10 @@ export const Sigma: React.FC<SigmaProps> = ({ graph, selectedNodes, setSelectedN
           // merge associated edges
 
           graph.forEachEdge(n, (e, eAtts, src, trg) => (edgesToMerge[e] = [e, src, trg, eAtts]));
+        } else {
+          //update scope variables
+          sigmaGraph.setNodeAttribute(n, "inScope", !!atts.inScope);
+          sigmaGraph.setNodeAttribute(n, "inScopeArea", !!atts.inScopeArea);
         }
       });
       const nbNewNodes = sum(values(newNodesByNeighborhood));
@@ -148,10 +152,7 @@ export const Sigma: React.FC<SigmaProps> = ({ graph, selectedNodes, setSelectedN
         size: sigmaGraph.degree(node) !== 0 ? Math.log(sigmaGraph.degree(node)) : 1,
         highlighted: false,
         dotColor: selectedNodes.has(node) ? config.networkStyle.selectColor : null,
-        insideColor:
-          !!state.scope && !!state.scope[model] && state.scope[model].includes(node)
-            ? config.networkStyle.scopeColor
-            : null,
+        insideColor: data.inScope ? config.networkStyle.scopeColor : null,
       };
       if (hoveredNode) {
         if (node === hoveredNode || sigmaGraph.neighbors(hoveredNode).includes(node)) newData.highlighted = true;
@@ -210,10 +211,11 @@ export const Network: FC<NetworkProps> = ({
         <ZoomControl />
         <ForceAtlasControl autoRunFor={FA2Autorun} />
       </ControlsContainer>
-      <ControlsContainer position={"bottom-right"}>
-        {/* graph props is added only to recyl */}
-        <DegreeFilter label={edgeWeightFilterLabel} min={edgeWeightBoundaries.min} max={edgeWeightBoundaries.max} />
-      </ControlsContainer>
+      {edgeWeightBoundaries.min !== Infinity && (
+        <ControlsContainer position={"bottom-right"}>
+          <DegreeFilter label={edgeWeightFilterLabel} min={edgeWeightBoundaries.min} max={edgeWeightBoundaries.max} />
+        </ControlsContainer>
+      )}
       <ControlsContainer position={"bottom-left"}>
         <div className="scope">
           <NodeLegend model={model} selectedIds={selectedNodes} state={state} setSelectedNodes={setSelectedNodes} />

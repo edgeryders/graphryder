@@ -51,6 +51,25 @@ const config: ConfigType = {
         { property: "created_at", label: "Created at", type: "date" },
         { property: "word_count", label: "Word count", type: "number" },
         { property: "username", label: "Author" },
+        {
+          property: "codes_in_scope",
+          label: "Codes in scope",
+          type: "number",
+          generateFromNode: (graph, node): number => {
+            let nb_code_in_scope = 0;
+            // reach annotations nodes
+            graph.forEachInEdge(node, (_, atts, annotation, target) => {
+              if (atts["@type"] === "ANNOTATES") {
+                // reach code nodes
+                graph.forEachOutEdge(annotation, (__, atts, _source, code, _src_atts, code_atts) => {
+                  // check if code is in_scope
+                  if (code_atts.inScope) nb_code_in_scope += 1;
+                });
+              }
+            });
+            return nb_code_in_scope;
+          },
+        },
       ],
     },
     user: {

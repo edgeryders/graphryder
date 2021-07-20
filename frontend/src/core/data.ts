@@ -136,42 +136,48 @@ export const applyScopeOnGraph = (
     // by default nodes are considered in scope area (i.e. cooccurre with some "inScope" nodes)
     let inScopeArea: boolean = true;
     if (scope) {
-      // scope application on code nodes
-      if (nodeAtts.model === "code" && (scope.user || scope.post))
-        inScopeArea = newGraph.inNeighbors(node).some((annotation) => {
-          // does the node has an annotation ?
-          if (newGraph.getNodeAttribute(annotation, "@labels").includes("annotation")) {
-            // code <- Anotation -> post
-            const posts = newGraph.outNeighbors(annotation);
+      // when node is in scope
+      if (scope[nodeAtts.model] && scope[nodeAtts.model].includes(node)) {
+        newGraph.setNodeAttribute(node, "inScope", true);
+        inScopeArea = true;
+      } else {
+        // scope application on code nodes
+        if (nodeAtts.model === "code" && (scope.user || scope.post))
+          inScopeArea = newGraph.inNeighbors(node).some((annotation) => {
+            // does the node has an annotation ?
+            if (newGraph.getNodeAttribute(annotation, "@labels").includes("annotation")) {
+              // code <- Anotation -> post
+              const posts = newGraph.outNeighbors(annotation);
+              return (
+                // does posts contains a scope.post?
+                (!scope.post || posts.some((post) => scope.post.includes(post))) && // This AND could a OR depending on how we want multiscope variable to be cumulative or assortative
+                // was on of posts created by a scope.user ?
+                (!scope.user || posts.some((post) => postInUserScope(newGraph, scope.user, post)))
+              );
+            }
+            return false;
+          });
+        // scope application on user node
+        if (nodeAtts.model === "user" && (scope.code || scope.post))
+          inScopeArea = newGraph.outEdges(node).some((outLinkUser) => {
+            // user - [:CREATED] -> post
+            const post =
+              newGraph.getEdgeAttribute(outLinkUser, "@type") === "CREATED" ? newGraph.target(outLinkUser) : null;
+            // does the user has created posts  ?
             return (
-              // does posts contains a scope.post?
-              (!scope.post || posts.some((post) => scope.post.includes(post))) && // This AND could a OR depending on how we want multiscope variable to be cumulative or assortative
-              // was on of posts created by a scope.user ?
-              (!scope.user || posts.some((post) => postInUserScope(newGraph, scope.user, post)))
+              (!scope.post || (post && scope.post.includes(post))) && // This AND could a OR depending on how we want multiscope variable to be cumulative or assortative
+              // post <- anotation -> code
+              postInCodeScope(newGraph, scope.code, post)
             );
-          }
-          return false;
-        });
-      // scope application on user node
-      if (nodeAtts.model === "user" && (scope.code || scope.post))
-        inScopeArea = newGraph.outEdges(node).some((outLinkUser) => {
-          // user - [:CREATED] -> post
-          const post =
-            newGraph.getEdgeAttribute(outLinkUser, "@type") === "CREATED" ? newGraph.target(outLinkUser) : null;
-          // does the user has created posts  ?
-          return (
-            (!scope.post || (post && scope.post.includes(post))) && // This AND could a OR depending on how we want multiscope variable to be cumulative or assortative
+          });
+        // scope application on post node
+        if (nodeAtts.model === "post" && (scope.code || scope.user)) {
+          inScopeArea =
+            // post <- [:CREATED] - user
+            postInUserScope(newGraph, scope.user, node) && // This AND could a OR depending on how we want multiscope variable to be cumulative or assortative
             // post <- anotation -> code
-            postInCodeScope(newGraph, scope.code, post)
-          );
-        });
-      // scope application on post node
-      if (nodeAtts.model === "post" && (scope.code || scope.user)) {
-        inScopeArea =
-          // post <- [:CREATED] - user
-          postInUserScope(newGraph, scope.user, node) && // This AND could a OR depending on how we want multiscope variable to be cumulative or assortative
-          // post <- anotation -> code
-          postInCodeScope(newGraph, scope.code, node);
+            postInCodeScope(newGraph, scope.code, node);
+        }
       }
     }
     // compute stats
