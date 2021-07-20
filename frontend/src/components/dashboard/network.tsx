@@ -181,9 +181,15 @@ export type NetworkProps = {
   graphData: { graph: Graph; edgeWeightBoundaries: { min: number; max: number } };
   model: string;
   state: QueryState;
+  edgeWeightFilterLabel: string;
 };
 
-export const Network: FC<NetworkProps> = ({ graphData: { graph, edgeWeightBoundaries }, model, state }) => {
+export const Network: FC<NetworkProps> = ({
+  graphData: { graph, edgeWeightBoundaries },
+  model,
+  state,
+  edgeWeightFilterLabel,
+}) => {
   // selection management
   const [selectedNodes, setSelectedNodes] = useState<ReadonlySet<string>>(new Set());
   const [FA2Autorun, setFA2Autorun] = useState<number>(2000);
@@ -206,7 +212,7 @@ export const Network: FC<NetworkProps> = ({ graphData: { graph, edgeWeightBounda
       </ControlsContainer>
       <ControlsContainer position={"bottom-right"}>
         {/* graph props is added only to recyl */}
-        <DegreeFilter min={edgeWeightBoundaries.min} max={edgeWeightBoundaries.max} />
+        <DegreeFilter label={edgeWeightFilterLabel} min={edgeWeightBoundaries.min} max={edgeWeightBoundaries.max} />
       </ControlsContainer>
       <ControlsContainer position={"bottom-left"}>
         <div className="scope">

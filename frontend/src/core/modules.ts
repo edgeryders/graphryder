@@ -33,6 +33,7 @@ export const Modules: Record<string, ModuleType> = {
       // uggly cause to Scope Type beeing a PlainObject where it should use ModelType as key type
       model: "code",
       state,
+      edgeWeightFilterLabel: "Cooccurrence",
     }),
   },
   pi: {
@@ -49,6 +50,7 @@ export const Modules: Record<string, ModuleType> = {
       }),
       model: "user",
       state,
+      edgeWeightFilterLabel: "Interactions",
     }),
   },
   cl: {

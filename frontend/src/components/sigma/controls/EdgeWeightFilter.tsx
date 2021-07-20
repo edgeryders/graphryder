@@ -5,6 +5,7 @@ import { useSigma } from "react-sigma-v2";
 interface Props {
   min: number;
   max: number;
+  label: string;
 }
 
 const filterGraph = (graph: Graph, value: number) => {
@@ -26,7 +27,7 @@ const filterGraph = (graph: Graph, value: number) => {
 };
 
 export const DegreeFilter: React.FC<Props> = (props) => {
-  const { min: minWeight, max: maxWeight } = props;
+  const { min: minWeight, max: maxWeight, label } = props;
   // Get Sigma
   const sigma = useSigma();
   // Value of the degree filter selection
@@ -71,7 +72,7 @@ export const DegreeFilter: React.FC<Props> = (props) => {
     <div className="react-sigma-control-filters">
       <div className="filter">
         <label htmlFor="degre-filter">
-          Edge weight {minWeight !== maxWeight ? "≥" : "="} {value}
+          {label} {minWeight !== maxWeight ? "≥" : "="} {value}
         </label>
         <input
           id="degree-filter"
