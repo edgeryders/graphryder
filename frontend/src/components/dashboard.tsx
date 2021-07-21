@@ -11,6 +11,7 @@ import { AvailableModules } from "./dashboard/available-modules";
 import { Header } from "./layout/header";
 import { NetworkProps } from "./dashboard/network";
 import { TableProps } from "./dashboard/table";
+import { sortBy } from "lodash";
 
 export const Dashboard: FC<{ platform: string; corpus: string }> = ({ platform, corpus }) => {
   const location = useLocation();
@@ -49,39 +50,10 @@ export const Dashboard: FC<{ platform: string; corpus: string }> = ({ platform, 
     }
   }, [isLoading, JSON.stringify(queryState.scope)]);
 
-  const renderModule = (module: ModuleType): ReactElement => {
-    let content: JSX.Element | null = null;
-    let nbItems: number | undefined = undefined;
-    if (!dataset) {
-      content = <Loader />;
-    } else {
-      const props: NetworkProps | TableProps = module.getProps(queryState, dataset);
-      nbItems = props && "data" in props ? props.data.rows.length : props.graphData.graph.order;
-      const Component = module.component;
-      content = <Component {...props} />;
-    }
-    return (
-      <BoxWrapper
-        key={module.id}
-        onRemove={() => {
-          queryState.modules = queryState.modules.filter((key) => key !== module.id);
-          history.push({ search: stateToQueryString(queryState) });
-        }}
-      >
-        <div className="module-wrapper">
-          <div className="title">
-            <h2>
-              {module.title} {nbItems ? `(${nbItems})` : ""}
-            </h2>
-          </div>
-          {content}
-        </div>
-      </BoxWrapper>
-    );
-  };
-  const modules = queryState.modules.map((moduleID) => Modules[moduleID] as ModuleType);
-  const networkModules = modules.filter((m) => m.component.name === "Network");
-  const otherModules = modules.filter((m) => m.component.name !== "Network");
+  const modules = sortBy(
+    queryState.modules.map((moduleID) => Modules[moduleID] as ModuleType),
+    (m) => (m.component.name === "Network" ? 0 : 1),
+  );
 
   return (
     <>
@@ -117,11 +89,41 @@ export const Dashboard: FC<{ platform: string; corpus: string }> = ({ platform, 
               </div>
             </div>
             <div className="col-9 d-flex flex-column full-height modules">
-              {networkModules.length > 0 && (
-                <div className="network-modules">{networkModules.map((m) => renderModule(m))}</div>
-              )}
-              {otherModules.length > 0 && (
-                <div className="other-modules">{otherModules.map((m) => renderModule(m))}</div>
+              {!dataset && <Loader />}
+              {dataset && (
+                <>
+                  {modules.map((module) => {
+                    const props: NetworkProps | TableProps = {
+                      ...module.getProps(queryState, dataset),
+                      moduleId: module.id,
+                    } as NetworkProps | TableProps;
+                    const Component = module.component;
+
+                    return (
+                      <div
+                        key={module.id}
+                        className={`${module.component.name === "Network" ? "network-modules" : "other-modules"}`}
+                      >
+                        <BoxWrapper
+                          onRemove={() => {
+                            queryState.modules = queryState.modules.filter((key) => key !== module.id);
+                            history.push({ search: stateToQueryString(queryState) });
+                          }}
+                        >
+                          <div className="module-wrapper">
+                            <div className="title">
+                              <h2>
+                                {module.title} (
+                                {props && "data" in props ? props.data.rows.length : props.graphData.graph.order})
+                              </h2>
+                            </div>
+                            <Component {...props} />
+                          </div>
+                        </BoxWrapper>
+                      </div>
+                    );
+                  })}
+                </>
               )}
             </div>
           </div>
