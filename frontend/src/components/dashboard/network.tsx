@@ -12,15 +12,15 @@ import {
   useLoadGraph,
   useSetSettings,
 } from "react-sigma-v2";
-import { QueryState, queryToState } from "../../core/queryState";
+import { QueryState, queryToState, stateToQueryString } from "../../core/queryState";
 import { useLocation } from "react-router";
 import config from "../../core/config";
 import NodeWithCirclesProgram from "../sigma/node-with-circles/node-with-circles-program";
 import drawHoverWithCircles from "../sigma/node-with-circles/node-with-circles-hover";
-import { random, sortedUniq, sum, values } from "lodash";
-import { PlainObject } from "sigma/types";
+import { max, min, random, sortedUniq, sum, values } from "lodash";
 import { NodeLegend } from "../sigma/controls/NodeLegend";
-import { DegreeFilter } from "../sigma/controls/EdgeWeightFilter";
+import { EdgeWeightFilter } from "../sigma/controls/EdgeWeightFilter";
+import { useHistory } from "react-router-dom";
 
 export interface SigmaProps {
   graph: Graph;
@@ -70,6 +70,7 @@ export const Sigma: React.FC<SigmaProps> = ({ graph, selectedNodes, setSelectedN
       });
     } else {
       // merge sigmaGraph with incoming graph
+      const triggerFA2 = graph.size !== sigmaGraph.size || graph.order !== sigmaGraph.order;
 
       const deprecatedNodes: string[] = [];
       const currentXs: number[] = [];
@@ -82,11 +83,13 @@ export const Sigma: React.FC<SigmaProps> = ({ graph, selectedNodes, setSelectedN
           currentYs.push(atts.y);
         }
       });
+      const graphCenterX = ((max(currentXs) || 0) - (min(currentXs) || 0)) / 2;
+      const graphCenterY = ((max(currentYs) || 0) - (min(currentYs) || 0)) / 2;
       // drop deprecated nodes
       deprecatedNodes.forEach((n) => {
         if (sigmaGraph.hasNode(n)) sigmaGraph.dropNode(n);
       });
-      const edgesToMerge: { [key: string]: [string, string, string, PlainObject] } = {};
+
       let newNodesByNeighborhood: { [key: string]: number } = {};
       graph.forEachNode((n, atts) => {
         if (!sigmaGraph.hasNode(n)) {
@@ -108,34 +111,30 @@ export const Sigma: React.FC<SigmaProps> = ({ graph, selectedNodes, setSelectedN
 
           // new nodes are placed on neighbors centroïd if exists
           // otherwise on the current graph centroïd
-          let x = xs.length > 0 ? sum(xs) / xs.length : currentXs.length > 0 ? sum(currentXs) / currentXs.length : 0;
-          let y = ys.length > 0 ? sum(ys) / ys.length : currentYs.length > 0 ? sum(currentYs) / currentYs.length : 0;
+          let x = xs.length > 0 ? sum(xs) / xs.length : graphCenterX;
+          let y = ys.length > 0 ? sum(ys) / ys.length : graphCenterY;
           // count newNodes by neiborhood classe to detect colision
           const neighborhood = sortedUniq(neighbors).join("");
           newNodesByNeighborhood[neighborhood] = (newNodesByNeighborhood[neighborhood] || 0) + 1;
           // avoid overlap
-          if (newNodesByNeighborhood[neighborhood] > 1) {
+          if (newNodesByNeighborhood[neighborhood] > 0) {
             // collision : same neighborhood => same x,y + same links => overlapping node in spacialisation
             // to avoid this we blur position around the centroid
             x += random(0.1, 0.8);
             y += random(0.1, 0.8);
           }
           sigmaGraph.addNode(n, { ...atts, x, y });
-          // merge associated edges
-
-          graph.forEachEdge(n, (e, eAtts, src, trg) => (edgesToMerge[e] = [e, src, trg, eAtts]));
         } else {
           //update scope variables
           sigmaGraph.setNodeAttribute(n, "inScope", !!atts.inScope);
           sigmaGraph.setNodeAttribute(n, "inScopeArea", !!atts.inScopeArea);
         }
       });
-      const nbNewNodes = sum(values(newNodesByNeighborhood));
-      values(edgesToMerge).forEach((args) => sigmaGraph.addEdgeWithKey(...args));
-      // there is no need to merge other edges than the ones attached to new nodes, they must be already there
+      sigmaGraph.clearEdges();
+      graph.forEachEdge((e, atts, src, trg) => sigmaGraph.addEdgeWithKey(e, src, trg, atts));
       // trigger FA2: autorun value is changed to force fa2 component to remount
       // TODO: would need a different components architecture to give sigma a proper control on FA2 process (fa2 container?)
-      if (nbNewNodes > 0) setFA2Autorun((fa) => fa + 1);
+      if (triggerFA2) setFA2Autorun((fa) => fa + 1);
     }
   }, [graph]);
 
@@ -164,9 +163,9 @@ export const Sigma: React.FC<SigmaProps> = ({ graph, selectedNodes, setSelectedN
       nodeReducer,
       edgeReducer: (edge: any, data: any) => {
         const sigmaGraph = sigma.getGraph();
-        const newData = { ...data };
+        const newData = { ...data, hidden: false };
         // hide edges not attached to hoverednode
-        if (!!data.hidden && hoveredNode && !sigmaGraph.extremities(edge).includes(hoveredNode)) newData.hidden = true;
+        if (hoveredNode && !sigmaGraph.extremities(edge).includes(hoveredNode)) newData.hidden = true;
         return newData;
       },
       hoverRenderer: (context, data, settings) => {
@@ -180,6 +179,7 @@ export const Sigma: React.FC<SigmaProps> = ({ graph, selectedNodes, setSelectedN
 };
 
 export type NetworkProps = {
+  moduleId: string;
   graphData: { graph: Graph; edgeWeightBoundaries: { min: number; max: number } };
   model: string;
   state: QueryState;
@@ -187,14 +187,30 @@ export type NetworkProps = {
 };
 
 export const Network: FC<NetworkProps> = ({
+  moduleId,
   graphData: { graph, edgeWeightBoundaries },
   model,
   state,
   edgeWeightFilterLabel,
 }) => {
+  const history = useHistory();
+
   // selection management
   const [selectedNodes, setSelectedNodes] = useState<ReadonlySet<string>>(new Set());
   const [FA2Autorun, setFA2Autorun] = useState<number>(2000);
+
+  // update state
+  const updateEdgeWeightFilterInState = (value: number) => {
+    history.push({
+      search: stateToQueryString({
+        ...state,
+        modulesStates: {
+          ...state.modulesStates,
+          [moduleId]: { ...state.modulesStates[moduleId], weightFilter: "" + value },
+        },
+      }),
+    });
+  };
   return (
     <SigmaContainer
       graphOptions={{ multi: true, type: "directed", allowSelfLoops: true }}
@@ -214,15 +230,22 @@ export const Network: FC<NetworkProps> = ({
       </ControlsContainer>
       {edgeWeightBoundaries.min !== Infinity && (
         <ControlsContainer position={"bottom-right"}>
-          <DegreeFilter label={edgeWeightFilterLabel} min={edgeWeightBoundaries.min} max={edgeWeightBoundaries.max} />
+          <EdgeWeightFilter
+            value={
+              (state.modulesStates[moduleId] && +state.modulesStates[moduleId].weightFilter) || edgeWeightBoundaries.min
+            }
+            label={edgeWeightFilterLabel}
+            min={edgeWeightBoundaries.min}
+            max={edgeWeightBoundaries.max}
+            onChange={updateEdgeWeightFilterInState}
+          />
         </ControlsContainer>
       )}
       <ControlsContainer position={"bottom-left"}>
         <div className="scope">
           <NodeLegend model={model} selectedIds={selectedNodes} state={state} setSelectedNodes={setSelectedNodes} />
         </div>
-      </ControlsContainer>{" "}
-      :
+      </ControlsContainer>
     </SigmaContainer>
   );
 };

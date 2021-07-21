@@ -14,7 +14,7 @@ export interface ModuleType {
   visible: boolean;
   model: ModelType;
   component: ComponentType<any>;
-  getProps(state: QueryState, dataset: DatasetType): NetworkProps | TableProps;
+  getProps(state: QueryState, dataset: DatasetType): Omit<NetworkProps | TableProps, "moduleId">;
 }
 
 export const Modules: Record<string, ModuleType> = {
@@ -25,10 +25,12 @@ export const Modules: Record<string, ModuleType> = {
     component: Network,
     model: config.models.code,
     visible: false,
-    getProps: (state, dataset): NetworkProps => ({
+    getProps: (state, dataset) => ({
       graphData: getGraph(dataset, {
         nodeLabels: ["code"],
         edgeTypes: ["COOCCURS"],
+        weightField: "count",
+        minEdgeWeight: state.modulesStates.cn && +state.modulesStates.cn.weightFilter,
       }),
       // uggly cause to Scope Type beeing a PlainObject where it should use ModelType as key type
       model: "code",
@@ -43,10 +45,12 @@ export const Modules: Record<string, ModuleType> = {
     model: config.models.user,
     component: Network,
     visible: false,
-    getProps: (state, dataset): NetworkProps => ({
+    getProps: (state, dataset) => ({
       graphData: getGraph(dataset, {
         nodeLabels: ["user"],
         edgeTypes: ["TALKED_OR_QUOTED"],
+        weightField: "count",
+        minEdgeWeight: state.modulesStates.pi && +state.modulesStates.pi.weightFilter,
       }),
       model: "user",
       state,
@@ -60,7 +64,7 @@ export const Modules: Record<string, ModuleType> = {
     model: config.models.code,
     component: Table,
     visible: false,
-    getProps: (state, dataset): TableProps => ({
+    getProps: (state, dataset) => ({
       data: getTableData(dataset, {
         nodeLabel: "code",
         scope: state.scope,
@@ -75,7 +79,7 @@ export const Modules: Record<string, ModuleType> = {
     model: config.models.user,
     component: Table,
     visible: false,
-    getProps: (state, dataset): TableProps => ({
+    getProps: (state, dataset) => ({
       data: getTableData(dataset, {
         nodeLabel: "user",
         scope: state.scope,
@@ -91,7 +95,7 @@ export const Modules: Record<string, ModuleType> = {
     model: config.models.post,
     component: Table,
     visible: false,
-    getProps: (state, dataset): TableProps => ({
+    getProps: (state, dataset) => ({
       data: getTableData(dataset, {
         nodeLabel: "post",
         scope: state.scope,

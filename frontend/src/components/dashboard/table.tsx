@@ -8,6 +8,7 @@ import { QueryState } from "../../core/queryState";
 import { ScopeActions } from "./scope-actions";
 
 export interface TableProps {
+  moduleID: string;
   data: TableDataType;
   state: QueryState;
 }

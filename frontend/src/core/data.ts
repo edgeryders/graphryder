@@ -210,6 +210,8 @@ const keepNodesFromOption = (graph: Graph, options: GraphOptions) => (node: stri
 export interface GraphOptions {
   nodeLabels: string[];
   edgeTypes?: string[];
+  weightField?: string;
+  minEdgeWeight?: number;
 }
 
 function filterGraph(
@@ -233,10 +235,13 @@ function filterGraph(
     dataset.graph.forEachOutEdge(node, (edge, atts, source, target, sourceAtts, targetAtts) => {
       try {
         if (graph.hasNode(source) && graph.hasNode(target) && keepEdge(atts)) {
-          graph.addEdgeWithKey(edge, source, target, atts);
-          if (atts.count) {
-            edgeWeightBoundaries.min = Math.min(edgeWeightBoundaries.min, atts.count);
-            edgeWeightBoundaries.max = Math.max(edgeWeightBoundaries.max, atts.count);
+          if (!options.minEdgeWeight || !options.weightField || +atts[options.weightField] >= +options.minEdgeWeight) {
+            graph.addEdgeWithKey(edge, source, target, atts);
+          }
+          // edges weight boundaries are calculated also on edges whose weight is below minimum
+          if (options.weightField && atts[options.weightField]) {
+            edgeWeightBoundaries.min = Math.min(edgeWeightBoundaries.min, atts[options.weightField]);
+            edgeWeightBoundaries.max = Math.max(edgeWeightBoundaries.max, atts[options.weightField]);
           }
         }
       } catch (e) {
@@ -244,6 +249,10 @@ function filterGraph(
         console.debug(edge, source, target, graph.edge(source, target), graph.getEdgeAttributes(source, target), atts);
       }
     });
+  });
+  graph.forEachNode((node) => {
+    // remove orphans
+    if (graph.degree(node) === 0) graph.dropNode(node);
   });
   console.debug(
     `fitlered dataset graph (${dataset.graph.size} ${dataset.graph.order}) to ${graph.size} ${graph.order} weight [${
