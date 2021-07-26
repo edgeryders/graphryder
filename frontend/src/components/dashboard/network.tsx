@@ -22,6 +22,7 @@ import { NodeLegend } from "../sigma/controls/NodeLegend";
 import { EdgeWeightFilter } from "../sigma/controls/EdgeWeightFilter";
 import { useHistory } from "react-router-dom";
 import { ExplorationMode } from "../sigma/controls/ExplorationMode";
+import { SearchNode } from "../sigma/controls/SearchNodes";
 
 export interface SigmaProps {
   graph: Graph;
@@ -240,6 +241,9 @@ export const Network: FC<NetworkProps> = ({
         setSelectedNodes={setSelectedNodes}
         setFA2Autorun={setFA2Autorun}
       />
+      <ControlsContainer position={"top-left"}>
+        <SearchNode />
+      </ControlsContainer>
       <ControlsContainer position={"top-right"}>
         <ZoomControl />
         <ForceAtlasControl autoRunFor={FA2Autorun} />
