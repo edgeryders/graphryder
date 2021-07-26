@@ -178,6 +178,27 @@ export const applyScopeOnGraph = (
             // post <- anotation -> code
             postInCodeScope(newGraph, scope.code, node);
         }
+        // scope application on annotation node
+        if (nodeAtts.model === "annotation" && (scope.code || scope.user || scope.post)) {
+          const annotatedPosts: string[] = [];
+          const annotationCodes: string[] = [];
+
+          newGraph.outEdges(node).forEach((outLinkAnnotation) => {
+            if (newGraph.getEdgeAttribute(outLinkAnnotation, "@type") === "ANNOTATES")
+              annotatedPosts.push(newGraph.target(outLinkAnnotation));
+            if (newGraph.getEdgeAttribute(outLinkAnnotation, "@type") === "REFERS_TO")
+              annotationCodes.push(newGraph.target(outLinkAnnotation));
+          });
+
+          inScopeArea =
+            // annotation -> post
+            (!scope.post || annotatedPosts.some((annotatedPost) => scope.post.includes(annotatedPost))) && // This AND could a OR depending on how we want multiscope variable to be cumulative or assortative
+            // annotation -> post <- [:CREATED] - user
+            (!scope.user ||
+              annotatedPosts.some((annotatedPost) => postInUserScope(newGraph, scope.user, annotatedPost))) && // This AND could a OR depending on how we want multiscope variable to be cumulative or assortative
+            // anotation -> code
+            (!scope.code || annotationCodes.some((c) => scope.code.includes(c)));
+        }
       }
     }
     // compute stats

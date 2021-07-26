@@ -91,7 +91,12 @@ export const Stats: React.FC<StatsProps> = ({ dataset, scope }) => {
           inScopeArea={(inScopeStats && inScopeStats.code) || 0}
           verb="used in"
         />
-        <StatsElement model={config.models.annotation} total={nodeStats.annotation} verb="describes" />
+        <StatsElement
+          model={config.models.annotation}
+          total={nodeStats.annotation}
+          verb="describes"
+          inScopeArea={(inScopeStats && inScopeStats.annotation) || 0}
+        />
         <StatsElement
           model={config.models.post}
           total={nodeStats.post}

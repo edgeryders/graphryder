@@ -11,6 +11,7 @@ export interface TableProps {
   moduleID: string;
   data: TableDataType;
   state: QueryState;
+  noScope?: boolean;
 }
 
 type Comparator = (a: PlainObject, b: PlainObject) => number;
@@ -40,7 +41,7 @@ function getComparator(sortColumn: string): Comparator {
 }
 
 export const Table: FC<TableProps> = (props: TableProps) => {
-  const { data, state } = props;
+  const { data, state, noScope } = props;
 
   const [sortColumns, setSortColumns] = useState<readonly Readonly<SortColumn>[]>([]);
   const [selectedRows, setSelectedRows] = useState<ReadonlySet<string>>(() => new Set());
@@ -54,7 +55,7 @@ export const Table: FC<TableProps> = (props: TableProps) => {
       ...data.rows.map((d) => ({
         ...d,
         //TODO: bettre in scope format ?
-        inScope: scope && scope.includes(d.key) ? "in scope" : "",
+        inScope: !noScope && scope && scope.includes(d.key) ? "in scope" : "",
       })),
     ];
 
@@ -71,7 +72,8 @@ export const Table: FC<TableProps> = (props: TableProps) => {
     return sortedRows;
   }, [data, sortColumns, scope]);
 
-  let autoColumns = [SelectColumn, { key: "inScope", name: "Scope" }];
+  let autoColumns = [SelectColumn];
+  if (!noScope) autoColumns.push({ key: "inScope", name: "Scope" });
 
   return (
     <>
@@ -89,9 +91,15 @@ export const Table: FC<TableProps> = (props: TableProps) => {
         onSortColumnsChange={setSortColumns}
         className="data-grid"
       />
-      <div className="data-grid-footer">
-        <ScopeActions model={data.label} selectedIds={selectedRows} state={state} />
-      </div>
+      {!noScope && (
+        <div className="data-grid-footer">
+          <ScopeActions model={data.label} selectedIds={selectedRows} state={state} />
+        </div>
+      )}
     </>
   );
+};
+
+export const TableWithoutScope: FC<TableProps> = (props: TableProps) => {
+  return <Table {...{ ...props, noScope: true }} />;
 };

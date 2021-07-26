@@ -2,7 +2,7 @@ import { ComponentType } from "react";
 
 import { QueryState } from "./queryState";
 import { DatasetType, getGraph, getTableData } from "./data";
-import { Table, TableProps } from "../components/dashboard/table";
+import { Table, TableProps, TableWithoutScope } from "../components/dashboard/table";
 import { Network, NetworkProps } from "../components/dashboard/network";
 import { ModelType } from "../types";
 import config from "./config";
@@ -98,6 +98,21 @@ export const Modules: Record<string, ModuleType> = {
     getProps: (state, dataset) => ({
       data: getTableData(dataset, {
         nodeLabel: "post",
+        scope: state.scope,
+      }),
+      state,
+    }),
+  },
+  anl: {
+    id: "anl",
+    title: "Annotations list",
+    description: "Annotations of posts, filtered by your selections of codes, posts and participants",
+    model: config.models.annotation,
+    component: TableWithoutScope,
+    visible: false,
+    getProps: (state, dataset) => ({
+      data: getTableData(dataset, {
+        nodeLabel: "annotation",
         scope: state.scope,
       }),
       state,
