@@ -159,6 +159,10 @@ export const Sigma: React.FC<SigmaProps> = ({ graph, selectedNodes, setSelectedN
         if (node === hoveredNode || sigmaGraph.neighbors(hoveredNode).includes(node)) newData.highlighted = true;
         else newData.color = "#E2E2E2";
       }
+      if (data.searchHighlight) {
+        newData.highlighted = true;
+      }
+
       return newData;
     };
     setSettings({

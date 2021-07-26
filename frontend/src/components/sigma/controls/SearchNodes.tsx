@@ -8,6 +8,8 @@ interface Props {}
 
 export const SearchNode: React.FC<Props> = (props) => {
   const [search, setSearch] = useState<string>();
+  const [highlightedNode, setHighlightedNode] = useState<OptionTypeBase>();
+
   const sigma = useSigma();
   const graph = sigma.getGraph();
   const options = graph
@@ -41,7 +43,7 @@ export const SearchNode: React.FC<Props> = (props) => {
           placeholder="Sélectionner un nœud..."
           options={options}
           filterOption={() => true}
-          //value={search}
+          value={highlightedNode}
           inputValue={search}
           noOptionsMessage={({ inputValue }: { inputValue: any }) => {
             if (!inputValue) return null;
@@ -55,7 +57,16 @@ export const SearchNode: React.FC<Props> = (props) => {
             if (id) {
               //TODO: add a highlight effect on selected node?
               panToNode(id);
-            }
+              setHighlightedNode((prev) => {
+                if (prev) graph.setNodeAttribute(prev.id, "searchHighlight", false);
+                graph.setNodeAttribute(id, "searchHighlight", true);
+                return value;
+              });
+            } else
+              setHighlightedNode((prev) => {
+                if (prev) graph.setNodeAttribute(prev.id, "searchHighlight", false);
+                return value;
+              });
           }}
         />
       </div>
