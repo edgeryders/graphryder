@@ -31,6 +31,7 @@ export const Modules: Record<string, ModuleType> = {
         edgeTypes: ["COOCCURS"],
         weightField: "count",
         minEdgeWeight: state.modulesStates.cn && +state.modulesStates.cn.weightFilter,
+        mode: state.modulesStates.cn && state.modulesStates.cn.mode,
       }),
       // uggly cause to Scope Type beeing a PlainObject where it should use ModelType as key type
       model: "code",
@@ -51,6 +52,7 @@ export const Modules: Record<string, ModuleType> = {
         edgeTypes: ["TALKED_OR_QUOTED"],
         weightField: "count",
         minEdgeWeight: state.modulesStates.pi && +state.modulesStates.pi.weightFilter,
+        mode: state.modulesStates.pi && state.modulesStates.pi.mode,
       }),
       model: "user",
       state,

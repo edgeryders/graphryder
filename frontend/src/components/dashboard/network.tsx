@@ -21,6 +21,7 @@ import { max, min, random, sortedUniq, sum, values } from "lodash";
 import { NodeLegend } from "../sigma/controls/NodeLegend";
 import { EdgeWeightFilter } from "../sigma/controls/EdgeWeightFilter";
 import { useHistory } from "react-router-dom";
+import { ExplorationMode } from "../sigma/controls/ExplorationMode";
 
 export interface SigmaProps {
   graph: Graph;
@@ -211,6 +212,21 @@ export const Network: FC<NetworkProps> = ({
       }),
     });
   };
+  const updateExplorationMode = (mode: string) => {
+    history.push({
+      search: stateToQueryString({
+        ...state,
+        modulesStates: {
+          ...state.modulesStates,
+          [moduleId]: {
+            ...state.modulesStates[moduleId],
+            mode,
+          },
+        },
+      }),
+    });
+  };
+
   return (
     <SigmaContainer
       graphOptions={{ multi: true, type: "directed", allowSelfLoops: true }}
@@ -238,6 +254,11 @@ export const Network: FC<NetworkProps> = ({
             min={edgeWeightBoundaries.min}
             max={edgeWeightBoundaries.max}
             onChange={updateEdgeWeightFilterInState}
+          />
+          <ExplorationMode
+            model={model}
+            checked={state.modulesStates[moduleId] && state.modulesStates[moduleId].mode}
+            onChange={updateExplorationMode}
           />
         </ControlsContainer>
       )}

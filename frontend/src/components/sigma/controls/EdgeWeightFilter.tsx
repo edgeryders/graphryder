@@ -19,10 +19,10 @@ export const EdgeWeightFilter: React.FC<Props> = (props) => {
 
   return (
     <div className="react-sigma-control-filters">
+      <h6>
+        {label} [{minWeight},{maxWeight}]
+      </h6>
       <div className="filter">
-        <label htmlFor="degre-filter">
-          {label} {minWeight !== maxWeight ? "≥" : "="} {value}
-        </label>
         <input
           id="degree-filter"
           type="range"
@@ -36,6 +36,9 @@ export const EdgeWeightFilter: React.FC<Props> = (props) => {
           list="degree-filter-tickmarks"
           disabled={minWeight === maxWeight}
         />
+        <label htmlFor="degre-filter">
+          {minWeight !== maxWeight ? "≥" : "="} {value}
+        </label>
       </div>
     </div>
   );

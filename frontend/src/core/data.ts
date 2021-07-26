@@ -225,7 +225,15 @@ const keepNodesFromOption = (graph: Graph, options: GraphOptions) => (node: stri
 
   // we use the inScope attribute computed by the dashboard component through applyScopeOnGraph method
   // no scope or no scope applied => we keep the node
-  return "inScopeArea" in nodeAtts ? nodeAtts.inScopeArea : true;
+  switch (options.mode) {
+    case "scopeAreaNeighborhood":
+      return graph.neighbors(node).some((n) => graph.getNodeAttribute(n, "inScopeArea"));
+    case "all":
+      return true;
+    case "scopeArea":
+    default:
+      return "inScopeArea" in nodeAtts ? nodeAtts.inScopeArea : true;
+  }
 };
 
 export interface GraphOptions {
@@ -233,6 +241,7 @@ export interface GraphOptions {
   edgeTypes?: string[];
   weightField?: string;
   minEdgeWeight?: number;
+  mode?: string;
 }
 
 function filterGraph(

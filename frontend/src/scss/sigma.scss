@@ -152,15 +152,14 @@ div.react-sigma-v2 {
     .react-sigma-control-filters {
       padding: 1em;
       display: flex;
+      flex-direction: column;
+      label {
+        margin-left: 0.5rem;
+      }
       .filter {
         display: flex;
-        flex-direction: column;
         justify-items: start;
         align-items: center;
-
-        label: {
-          margin: 0 1rem;
-        }
       }
     }
     .react-node-legend {
