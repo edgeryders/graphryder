@@ -29,15 +29,25 @@ export interface SigmaProps {
   selectedNodes: ReadonlySet<string>;
   setSelectedNodes: React.Dispatch<React.SetStateAction<ReadonlySet<string>>>;
   setFA2Autorun: React.Dispatch<React.SetStateAction<number>>;
+  cursor: string | undefined;
+  setCursor: (cursor: string | undefined) => void;
 }
 
-export const Sigma: React.FC<SigmaProps> = ({ graph, selectedNodes, setSelectedNodes, setFA2Autorun }) => {
+export const Sigma: React.FC<SigmaProps> = ({
+  graph,
+  selectedNodes,
+  setSelectedNodes,
+  setFA2Autorun,
+  cursor,
+  setCursor,
+}) => {
   const sigma = useSigma();
   const registerEvents = useRegisterEvents();
   const loadGraph = useLoadGraph();
   const setSettings = useSetSettings();
   const [hoveredNode, setHoveredNode] = useState<string | null>(null);
-
+  // Deal with nodes drag and dropping:
+  const [draggedNode, setDraggedNode] = useState<string | undefined>(undefined);
   // rerenderer if module layout changed
   const location = useLocation();
   const state = queryToState(new URLSearchParams(location.search));
@@ -55,8 +65,15 @@ export const Sigma: React.FC<SigmaProps> = ({ graph, selectedNodes, setSelectedN
       loadGraph(graph);
       // Register the events
       registerEvents({
-        enterNode: (event: { node: NodeKey }) => setHoveredNode(`${event.node}`),
-        leaveNode: (event: { node: NodeKey }) => setHoveredNode(null),
+        enterNode: (event: { node: NodeKey }) => {
+          setHoveredNode(`${event.node}`);
+          // ENTER NODE : signify grabbing is possible through cursor
+          if (draggedNode === undefined) setCursor("pointer");
+        },
+        leaveNode: (event: { node: NodeKey }) => {
+          setHoveredNode(null);
+          if (draggedNode === undefined) setCursor(undefined);
+        },
         clickNode: (event: { node: NodeKey }) => {
           setSelectedNodes((oldSelection: ReadonlySet<string>) => {
             let newSelection: ReadonlySet<string> = new Set<string>() as ReadonlySet<string>;
@@ -69,7 +86,24 @@ export const Sigma: React.FC<SigmaProps> = ({ graph, selectedNodes, setSelectedN
             return newSelection;
           });
         },
+        downNode: ({ node, event }) => {
+          // TODO : add a check on FA2status here
+          //if (this.state.isFA2Running) return;
+          setCursor("grabbing");
+
+          sigma.getGraph().setNodeAttribute(node, "fixed", true);
+          sigma.getCamera().disable();
+          setDraggedNode(node as string);
+        },
       });
+      const mouseCaptor = sigma.getMouseCaptor();
+      // MOUSE UP : stop grabbing
+      const mouseUp = (): void => {
+        setCursor("pointer");
+        setDraggedNode(undefined);
+        sigma.getCamera().enable();
+      };
+      mouseCaptor.on("mouseup", mouseUp);
     } else {
       // merge sigmaGraph with incoming graph
       const triggerFA2 = graph.size !== sigmaGraph.size || graph.order !== sigmaGraph.order;
@@ -181,6 +215,27 @@ export const Sigma: React.FC<SigmaProps> = ({ graph, selectedNodes, setSelectedN
     });
   }, [hoveredNode, setSettings, sigma, JSON.stringify(state.scope), selectedNodes]);
 
+  useEffect(() => {
+    const mouseCaptor = sigma.getMouseCaptor();
+    // MOUSE MOVE : change node position following mouse
+    const mouseMove = (e: { x: number; y: number }) => {
+      if (!sigma || draggedNode === undefined) return;
+      if (sigma && draggedNode !== undefined) {
+        // Get new position of node
+        const pos = sigma.viewportToGraph(e);
+        // apply new position on node
+        const sigmaGraph = sigma.getGraph();
+        sigmaGraph.setNodeAttribute(draggedNode, "x", pos.x);
+        sigmaGraph.setNodeAttribute(draggedNode, "y", pos.y);
+        setCursor("grabbing");
+      }
+    };
+    mouseCaptor.on("mousemove", mouseMove);
+    return () => {
+      mouseCaptor.off("mousemove", mouseMove);
+    };
+  }, [draggedNode]);
+
   return null;
 };
 
@@ -204,6 +259,7 @@ export const Network: FC<NetworkProps> = ({
   // selection management
   const [selectedNodes, setSelectedNodes] = useState<ReadonlySet<string>>(new Set());
   const [FA2Autorun, setFA2Autorun] = useState<number>(2000);
+  const [cursor, setCursor] = useState<string | undefined>(undefined);
 
   // update state
   const updateEdgeWeightFilterInState = (value: number) => {
@@ -231,19 +287,21 @@ export const Network: FC<NetworkProps> = ({
       }),
     });
   };
-
   return (
     <SigmaContainer
       graphOptions={{ multi: true, type: "directed", allowSelfLoops: true }}
       initialSettings={{
         nodeProgramClasses: { circle: NodeWithCirclesProgram },
       }}
+      style={{ cursor }} //TODO: implement a getCursor which decide which cursor to use depending on the state
     >
       <Sigma
         graph={graph}
         selectedNodes={selectedNodes}
         setSelectedNodes={setSelectedNodes}
         setFA2Autorun={setFA2Autorun}
+        cursor={cursor}
+        setCursor={setCursor}
       />
       <ControlsContainer position={"top-left"}>
         <SearchNode />
