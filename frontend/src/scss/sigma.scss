@@ -183,8 +183,12 @@ div.react-sigma-v2 {
         margin-bottom: 5px;
       }
     }
-    .react-sigma-control-search {
-      width: 300px;
+    &.top-left {
+      // make sure the search bar suggestion menu (which is top-left) recovers node legend
+      z-index: 1100;
+      .react-sigma-control-search {
+        width: 300px;
+      }
     }
   }
 }
