@@ -23,6 +23,7 @@ import { EdgeWeightFilter } from "../sigma/controls/EdgeWeightFilter";
 import { useHistory } from "react-router-dom";
 import { ExplorationMode } from "../sigma/controls/ExplorationMode";
 import { SearchNode } from "../sigma/controls/SearchNodes";
+import { LabelDensity } from "../sigma/controls/LabelDensity";
 
 export interface SigmaProps {
   graph: Graph;
@@ -326,6 +327,7 @@ export const Network: FC<NetworkProps> = ({
             checked={state.modulesStates[moduleId] && state.modulesStates[moduleId].mode}
             onChange={updateExplorationMode}
           />
+          <LabelDensity />
         </ControlsContainer>
       )}
       <ControlsContainer position={"bottom-left"}>
