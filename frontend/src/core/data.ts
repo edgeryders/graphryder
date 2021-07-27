@@ -135,10 +135,11 @@ export const applyScopeOnGraph = (
   newGraph.forEachNode((node, nodeAtts) => {
     // by default nodes are considered in scope area (i.e. cooccurre with some "inScope" nodes)
     let inScopeArea: boolean = true;
+    let inScope: boolean = false;
     if (scope) {
       // when node is in scope
       if (scope[nodeAtts.model] && scope[nodeAtts.model].includes(node)) {
-        newGraph.setNodeAttribute(node, "inScope", true);
+        inScope = true;
         inScopeArea = true;
       } else {
         // scope application on code nodes
@@ -205,6 +206,7 @@ export const applyScopeOnGraph = (
     if (inScopeArea) inScopeStats[nodeAtts.model] = (inScopeStats[nodeAtts.model] || 0) + 1;
     // store the flag as node property
     newGraph.setNodeAttribute(node, "inScopeArea", inScopeArea);
+    newGraph.setNodeAttribute(node, "inScope", inScope);
   });
   //todo: detect if graph has changed?
   return { graph: newGraph, inScopeAreaStats: inScopeStats };
