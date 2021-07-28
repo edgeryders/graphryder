@@ -25,9 +25,6 @@ export async function register(app: Express): Promise<void> {
     typeDefs,
     resolvers,
     config: gqlConfig,
-    engine: {
-      debugPrintReports: true,
-    },
   });
 
   // create the graphql server with apollo
