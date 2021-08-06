@@ -45,9 +45,9 @@ const config: ConfigType = {
       label_field: "topic_title",
       tableColumns: [
         { property: "raw", label: "Content" },
-        { property: "postUrl", label: "Post url", type: "url" },
+        { property: "post_url", label: "Post url", type: "url" },
         { property: "topic_title", label: "Topic" },
-        { property: "topicUrl", label: "Topic url", type: "url" },
+        { property: "topic_url", label: "Topic url", type: "url" },
         { property: "created_at", label: "Created at", type: "date" },
         { property: "word_count", label: "Word count", type: "number" },
         { property: "username", label: "Author" },
@@ -80,7 +80,7 @@ const config: ConfigType = {
       label_field: "username",
       tableColumns: [
         { property: "username", label: "Name" },
-        { property: "profileUrl", label: "Profile url", type: "url" },
+        { property: "profile", label: "Profile url", type: "url" },
       ],
     },
     annotation: {

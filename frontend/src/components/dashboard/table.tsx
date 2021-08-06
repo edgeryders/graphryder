@@ -1,5 +1,5 @@
 import { FC, useMemo, useState } from "react";
-import DataGrid, { SortColumn, SelectColumn } from "react-data-grid";
+import DataGrid, { SortColumn, SelectColumn, Column } from "react-data-grid";
 
 import { PlainObject } from "sigma/types";
 
@@ -80,7 +80,30 @@ export const Table: FC<TableProps> = (props: TableProps) => {
       <DataGrid
         rowKeyGetter={(r) => r.key}
         rows={sortedRows}
-        columns={autoColumns.concat(data.columns.map((c) => ({ key: c.property, name: c.label })))}
+        columns={autoColumns.concat(
+          data.columns.map((c) => {
+            const dataGridColumn: Column<PlainObject> = { key: c.property, name: c.label };
+            switch (c.type) {
+              case "url":
+                dataGridColumn.formatter = ({ row, column }) => (
+                  <>{row[column.key] && <a href={row[column.key]}>{row[column.key]}</a>}</>
+                );
+                break;
+              case "date":
+                dataGridColumn.formatter = ({ row, column }) => (
+                  <>
+                    {row[column.key]
+                      ? new Intl.DateTimeFormat(navigator.language, { dateStyle: "short", timeStyle: "short" }).format(
+                          new Date(row[column.key]),
+                        )
+                      : ""}
+                  </>
+                );
+                break;
+            }
+            return dataGridColumn;
+          }),
+        )}
         defaultColumnOptions={{
           sortable: true,
           resizable: true,
