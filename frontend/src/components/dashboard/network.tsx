@@ -263,31 +263,19 @@ export const Network: FC<NetworkProps> = ({
   const [cursor, setCursor] = useState<string | undefined>(undefined);
 
   // update state
-  const updateEdgeWeightFilterInState = (value: number) => {
+  // TODO: create a generic util function to update state
+  const updateModuleState = (moduleId: string, keyValue: { [key: string]: string }) => {
     history.push({
       search: stateToQueryString({
         ...state,
         modulesStates: {
           ...state.modulesStates,
-          [moduleId]: { ...state.modulesStates[moduleId], weightFilter: "" + value },
+          [moduleId]: { ...state.modulesStates[moduleId], ...keyValue },
         },
       }),
     });
   };
-  const updateExplorationMode = (mode: string) => {
-    history.push({
-      search: stateToQueryString({
-        ...state,
-        modulesStates: {
-          ...state.modulesStates,
-          [moduleId]: {
-            ...state.modulesStates[moduleId],
-            mode,
-          },
-        },
-      }),
-    });
-  };
+
   return (
     <SigmaContainer
       graphOptions={{ multi: true, type: "directed", allowSelfLoops: true }}
@@ -320,14 +308,18 @@ export const Network: FC<NetworkProps> = ({
             label={edgeWeightFilterLabel}
             min={edgeWeightBoundaries.min}
             max={edgeWeightBoundaries.max}
-            onChange={updateEdgeWeightFilterInState}
+            onChange={(value) => updateModuleState(moduleId, { weightFilter: "" + value })}
           />
           <ExplorationMode
             model={model}
             checked={state.modulesStates[moduleId] && state.modulesStates[moduleId].mode}
-            onChange={updateExplorationMode}
+            onChange={(mode) => updateModuleState(moduleId, { mode })}
           />
-          <LabelDensity />
+          <LabelDensity
+            density={state.modulesStates[moduleId] && +state.modulesStates[moduleId].labelDensity}
+            threshold={state.modulesStates[moduleId] && +state.modulesStates[moduleId].labelThreshold}
+            onChange={(keyValue) => updateModuleState(moduleId, keyValue)}
+          />
         </ControlsContainer>
       )}
       <ControlsContainer position={"bottom-left"}>
