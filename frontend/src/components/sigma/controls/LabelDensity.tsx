@@ -11,8 +11,8 @@ export const LabelDensity: React.FC<Props> = (props) => {
   const { density, threshold, onChange } = props;
   // update sigma setting if needed
   const sigma = useSigma();
-  if (density !== null && density !== sigma.getSetting("labelDensity")) sigma.setSetting("labelDensity", density);
-  if (threshold !== null && threshold !== sigma.getSetting("labelRenderedSizeThreshold"))
+  if (density && density !== sigma.getSetting("labelDensity")) sigma.setSetting("labelDensity", density);
+  if (threshold && threshold !== sigma.getSetting("labelRenderedSizeThreshold"))
     sigma.setSetting("labelRenderedSizeThreshold", threshold);
 
   return (
