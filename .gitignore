@@ -12,6 +12,7 @@
 /backend/.nyc_output
 
 /docker/.env.prod
+/docker/.env
 
 .bash_*
 .bashrc
