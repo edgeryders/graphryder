@@ -1,4 +1,4 @@
-= Ryderex
+= RyderEx: Graphryder II
 
 RyderEx is the sequel to the [Graphryder Dashboard](https://github.com/edgeryders/graphryder-dashboard) and [API](https://github.com/edgeryders/graphryder-api). 
 
