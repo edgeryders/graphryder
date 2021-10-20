@@ -5,9 +5,9 @@ varying vec4 v_insideColor;
 varying vec4 v_dotColor;
 varying float v_border;
 
-const float radius = 0.5;
-const float halfRadius = 0.35;
-const float dotRadius = 0.15;
+const float radius = 0.2;
+const float halfRadius = 0.15;
+const float dotRadius = 0.05;
 
 void main(void) {
   vec4 transparent = vec4(0.0, 0.0, 0.0, 0.0);

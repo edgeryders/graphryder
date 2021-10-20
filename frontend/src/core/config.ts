@@ -57,16 +57,19 @@ const config: ConfigType = {
           type: "number",
           generateFromNode: (graph, node): number => {
             let nb_code_in_scope = 0;
+            let codes: string[] = [];
             // reach annotations nodes
             graph.forEachInEdge(node, (_, atts, annotation, target) => {
               if (atts["@type"] === "ANNOTATES") {
                 // reach code nodes
                 graph.forEachOutEdge(annotation, (__, atts, _source, code, _src_atts, code_atts) => {
-                  // check if code is in_scope
-                  if (code_atts.inScope) nb_code_in_scope += 1;
+                  // check if code is in_scope and only count each code once
+                  if (code_atts.inScope && !codes.includes(code_atts.discourse_id)) nb_code_in_scope += 1;
+                  if (code_atts.inScope) codes.push(code_atts.discourse_id);
                 });
               }
             });
+            console.log(codes)
             return nb_code_in_scope;
           },
         },
