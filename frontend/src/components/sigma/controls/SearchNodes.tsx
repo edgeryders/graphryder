@@ -40,7 +40,7 @@ export const SearchNode: React.FC<Props> = (props) => {
           isClearable
           className="react-select"
           classNamePrefix="react-select"
-          placeholder="Sélectionner un nœud..."
+          placeholder="Find a node..."
           options={options}
           filterOption={() => true}
           value={highlightedNode}
