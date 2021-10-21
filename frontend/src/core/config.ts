@@ -109,7 +109,22 @@ const config: ConfigType = {
       icon: "pencil-alt",
       label_field: "discourse_id",
       tableColumns: [
-        { property: "quote", label: "Quote" },
+        { 
+          property: "quote_link", 
+          label: "Quote",
+          type: "url",
+          generateFromNode: (graph, node): string[] => {
+            let post_url = "";
+            graph.forEachOutEdge(node, (_, atts, annotation, post, annotations_atts, post_atts) => {
+              if (atts["@type"] === "ANNOTATES") { 
+                post_url = post_atts.post_url
+              }
+            });
+            let quote = "[Multimedia annotation]"
+            if (graph.getNodeAttribute(node, "type") === "AnnotatorStore::TextAnnotation") quote = graph.getNodeAttribute(node, "quote")
+            return [post_url, quote]
+          }
+        },
         { property: "created_at", label: "Created at", type: "date" },
         { 
           property: "code", 

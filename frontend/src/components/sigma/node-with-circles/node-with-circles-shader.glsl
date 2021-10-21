@@ -6,7 +6,7 @@ varying vec4 v_dotColor;
 varying float v_border;
 
 const float radius = 0.2;
-const float halfRadius = 0.15;
+const float halfRadius = 0.1;
 const float dotRadius = 0.05;
 
 void main(void) {
