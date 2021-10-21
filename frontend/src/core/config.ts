@@ -69,7 +69,6 @@ const config: ConfigType = {
                 });
               }
             });
-            console.log(codes)
             return nb_code_in_scope;
           },
         },
@@ -95,7 +94,34 @@ const config: ConfigType = {
       tableColumns: [
         { property: "quote", label: "Quote" },
         { property: "created_at", label: "Created at", type: "date" },
-        { property: "username", label: "Anotator" },
+        { 
+          property: "code", 
+          label: "Code",
+          type: "string",
+          generateFromNode: (graph, node): string => {
+            let code_name = '';
+            graph.forEachOutEdge(node, (_, atts, annotation, code, annotations_atts, code_atts) => {
+              if (atts["@type"] === "REFERS_TO") { 
+                code_name = code_atts.name
+              }
+            });
+            return code_name;
+          }
+        },
+        {
+          property: "scope",
+          label: "In scope",
+          type: "string",
+          generateFromNode: (graph, node): string => {
+            let code_in_scope = '';
+            graph.forEachOutEdge(node, (_, atts, annotation, code, annotations_atts, code_atts) => {
+              if (atts["@type"] === "REFERS_TO") { 
+                if (code_atts.inScope) code_in_scope = "✓"
+              }
+            });
+            return code_in_scope;
+          }
+        },
       ],
     },
     topic: {
