@@ -85,8 +85,8 @@ export const Table: FC<TableProps> = (props: TableProps) => {
             const dataGridColumn: Column<PlainObject> = { key: c.property, name: c.label };
             switch (c.type) {
               case "url":
-                dataGridColumn.formatter = ({ row, column }) => (
-                  <>{row[column.key] && <a href={row[column.key]}>{row[column.key]}</a>}</>
+              dataGridColumn.formatter = ({ row, column }) => (
+                  <>{row[column.key][0] && <a target='_blank' href={row[column.key][0]}>{row[column.key][1]}</a>}</>
                 );
                 break;
               case "date":

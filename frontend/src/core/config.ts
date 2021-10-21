@@ -45,9 +45,17 @@ const config: ConfigType = {
       label_field: "topic_title",
       tableColumns: [
         { property: "raw", label: "Content" },
-        { property: "post_url", label: "Post url", type: "url" },
-        { property: "topic_title", label: "Topic" },
-        { property: "topic_url", label: "Topic url", type: "url" },
+        { 
+          property: "topic_link", 
+          label: "Topic",
+          type: "url",
+          generateFromNode: (graph, node): string[] => {
+            let url = graph.getNodeAttribute(node, "topic_url");
+            let title = graph.getNodeAttribute(node, "topic_title")
+            let link = [url, title]
+            return link;
+          }
+        },
         { property: "created_at", label: "Created at", type: "date" },
         { property: "word_count", label: "Word count", type: "number" },
         { property: "username", label: "Author" },
@@ -81,8 +89,17 @@ const config: ConfigType = {
       icon: "user-alt",
       label_field: "username",
       tableColumns: [
-        { property: "username", label: "Name" },
-        { property: "profile", label: "Profile url", type: "url" },
+        { 
+          property: "user", 
+          label: "Name",
+          type: "url",
+          generateFromNode: (graph, node): string[] => {
+            let url = graph.getNodeAttribute(node, "profile");
+            let title = graph.getNodeAttribute(node, "username")
+            let link = [url, title]
+            return link;
+          }  
+        }
       ],
     },
     annotation: {
