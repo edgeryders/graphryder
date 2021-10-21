@@ -50,7 +50,7 @@ const config: ConfigType = {
           label: "Topic",
           type: "url",
           generateFromNode: (graph, node): string[] => {
-            let url = graph.getNodeAttribute(node, "topic_url");
+            let url = graph.getNodeAttribute(node, "post_url");
             let title = graph.getNodeAttribute(node, "topic_title")
             let link = [url, title]
             return link;
