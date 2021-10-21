@@ -1,4 +1,14 @@
-= Ryderex
+= Graphryder II: RyderEx
+
+RyderEx is the sequel to the [Graphryder Dashboard](https://github.com/edgeryders/graphryder-dashboard) and [API](https://github.com/edgeryders/graphryder-api). 
+
+RyderEx builds and displays network graphs that describe conversations on Discourse platforms annotated with OpenEthnographer. This manual documents how to set up the RyderEx stack from scratch.
+
+[RyderEx import script](https://github.com/edgeryders/ryderex-import-script) exports data from a Discourse & OpenEthnographer postgresql database and builds a Neo4j graph database from that data.
+RyderEx Neo4j database is the data layer of RyderEx.
+RyderEx GraphQL API and dashboard (this repository) are deployed together in a Docker container and are how the end user interacts with the network graphs.
+
+See the Edgeryders platform for [installation instructions](https://edgeryders.eu/t/ryderex-installation-manual/16314) of the entire stack.
 
 == How to install with docker
 
