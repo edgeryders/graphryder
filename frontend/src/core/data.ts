@@ -91,33 +91,30 @@ export async function loadDataset(platform: string, corpora: string, state: Quer
 // graph traversal utils
 const postInCodeScope = (graph: Graph, codeScope: string[] | undefined, post: string | null): boolean => {
   return (
-    !codeScope ||
-    (!!post &&
-      graph.inEdges(post).some((inLinkPost) => {
-        const anotation = graph.getEdgeAttribute(inLinkPost, "@type") === "ANNOTATES" ? graph.source(inLinkPost) : null;
-        return (
-          anotation &&
-          graph.outEdges(anotation).some((outLinkAnot) => {
-            const code =
-              graph.getEdgeAttribute(outLinkAnot, "@type") === "REFERS_TO" ? graph.target(outLinkAnot) : null;
-            // does tu user created a post which was annotated by a scope code?
-            return code && codeScope.includes(code);
-          })
-        );
-      }))
+    !!codeScope &&
+    !!post &&
+    graph.inEdges(post).some((inLinkPost) => {
+      const anotation = graph.getEdgeAttribute(inLinkPost, "@type") === "ANNOTATES" ? graph.source(inLinkPost) : null;
+      return (
+        anotation &&
+        graph.outEdges(anotation).some((outLinkAnot) => {
+          const code = graph.getEdgeAttribute(outLinkAnot, "@type") === "REFERS_TO" ? graph.target(outLinkAnot) : null;
+          // does tu user created a post which was annotated by a scope code?
+          return code && codeScope.includes(code);
+        })
+      );
+    })
   );
 };
 const postInUserScope = (graph: Graph, userScope: string[] | undefined, post: string | null): boolean => {
   return (
-    !userScope ||
-    (!!post &&
-      graph.inEdges(post).some((inLinkPost) => {
-        // post <- [:CREATED] - user
-        // was this post created by a scope.user?
-        return (
-          graph.getEdgeAttribute(inLinkPost, "@type") === "CREATED" && userScope.includes(graph.source(inLinkPost))
-        );
-      }))
+    !!userScope &&
+    !!post &&
+    graph.inEdges(post).some((inLinkPost) => {
+      // post <- [:CREATED] - user
+      // was this post created by a scope.user?
+      return graph.getEdgeAttribute(inLinkPost, "@type") === "CREATED" && userScope.includes(graph.source(inLinkPost));
+    })
   );
 };
 /**
@@ -151,9 +148,9 @@ export const applyScopeOnGraph = (
               const posts = newGraph.outNeighbors(annotation);
               return (
                 // does posts contains a scope.post?
-                (!scope.post || posts.some((post) => scope.post.includes(post))) || // This AND could a OR depending on how we want multiscope variable to be cumulative or assortative
+                (scope.post && posts.some((post) => scope.post.includes(post))) ||
                 // was on of posts created by a scope.user ?
-                (!scope.user || posts.some((post) => postInUserScope(newGraph, scope.user, post)))
+                (scope.user && posts.some((post) => postInUserScope(newGraph, scope.user, post)))
               );
             }
             return false;
@@ -166,7 +163,7 @@ export const applyScopeOnGraph = (
               newGraph.getEdgeAttribute(outLinkUser, "@type") === "CREATED" ? newGraph.target(outLinkUser) : null;
             // does the user has created posts  ?
             return (
-              (!scope.post || (post && scope.post.includes(post))) || // This AND could a OR depending on how we want multiscope variable to be cumulative or assortative
+              (scope.post && post && scope.post.includes(post)) ||
               // post <- anotation -> code
               postInCodeScope(newGraph, scope.code, post)
             );
@@ -175,7 +172,7 @@ export const applyScopeOnGraph = (
         if (nodeAtts.model === "post" && (scope.code || scope.user)) {
           inScopeArea =
             // post <- [:CREATED] - user
-            postInUserScope(newGraph, scope.user, node) || // This AND could a OR depending on how we want multiscope variable to be cumulative or assortative
+            postInUserScope(newGraph, scope.user, node) ||
             // post <- anotation -> code
             postInCodeScope(newGraph, scope.code, node);
         }
@@ -193,12 +190,12 @@ export const applyScopeOnGraph = (
 
           inScopeArea =
             // annotation -> post
-            (!scope.post || annotatedPosts.some((annotatedPost) => scope.post.includes(annotatedPost))) || // This AND could a OR depending on how we want multiscope variable to be cumulative or assortative
+            (!!scope.post && annotatedPosts.some((annotatedPost) => scope.post.includes(annotatedPost))) ||
             // annotation -> post <- [:CREATED] - user
-            (!scope.user ||
-              annotatedPosts.some((annotatedPost) => postInUserScope(newGraph, scope.user, annotatedPost))) || // This AND could a OR depending on how we want multiscope variable to be cumulative or assortative
+            (!!scope.user &&
+              annotatedPosts.some((annotatedPost) => postInUserScope(newGraph, scope.user, annotatedPost))) ||
             // anotation -> code
-            (!scope.code || annotationCodes.some((c) => scope.code.includes(c)));
+            (!!scope.code && annotationCodes.some((c) => scope.code.includes(c)));
         }
       }
     }
@@ -216,27 +213,29 @@ export const applyScopeOnGraph = (
  * Data types translation / extraction:
  * ************************************
  */
-const keepNodesFromOption = (graph: Graph, options: GraphOptions) => (node: string, nodeAtts: PlainObject): boolean => {
-  const { nodeLabels } = options;
-  // keep only nodes asked in options though label filter
-  if (
-    nodeLabels.length === 0 ||
-    (nodeLabels.length !== 0 && !nodeLabels.some((t: string) => nodeAtts["@labels"].includes(t)))
-  )
-    return false;
+const keepNodesFromOption =
+  (graph: Graph, options: GraphOptions) =>
+  (node: string, nodeAtts: PlainObject): boolean => {
+    const { nodeLabels } = options;
+    // keep only nodes asked in options though label filter
+    if (
+      nodeLabels.length === 0 ||
+      (nodeLabels.length !== 0 && !nodeLabels.some((t: string) => nodeAtts["@labels"].includes(t)))
+    )
+      return false;
 
-  // we use the inScope attribute computed by the dashboard component through applyScopeOnGraph method
-  // no scope or no scope applied => we keep the node
-  switch (options.mode) {
-    case "scopeAreaNeighborhood":
-      return graph.neighbors(node).some((n) => graph.getNodeAttribute(n, "inScopeArea"));
-    case "all":
-      return true;
-    case "scopeArea":
-    default:
-      return "inScopeArea" in nodeAtts ? nodeAtts.inScopeArea : true;
-  }
-};
+    // we use the inScope attribute computed by the dashboard component through applyScopeOnGraph method
+    // no scope or no scope applied => we keep the node
+    switch (options.mode) {
+      case "scopeAreaNeighborhood":
+        return graph.neighbors(node).some((n) => graph.getNodeAttribute(n, "inScopeArea"));
+      case "all":
+        return true;
+      case "scopeArea":
+      default:
+        return "inScopeArea" in nodeAtts ? nodeAtts.inScopeArea : true;
+    }
+  };
 
 export interface GraphOptions {
   nodeLabels: string[];
