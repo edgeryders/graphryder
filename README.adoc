@@ -6,7 +6,7 @@ Graphryder builds and displays network graphs that describe conversations on Dis
 Graphryder Neo4j database is the data layer of Graphryder.
 Graphryder GraphQL API and dashboard (this repository) are deployed together in a Docker container and are how the end user interacts with the network graphs.
 
-See the Edgeryders platform for [installation instructions](https://edgeryders.eu/t/ryderex-installation-manual/16314) of the entire stack.
+See the Edgeryders platform for https://edgeryders.eu/t/ryderex-installation-manual/16314[installation instructions] of the entire stack.
 
 == How to install with docker
 
