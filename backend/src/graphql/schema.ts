@@ -137,6 +137,13 @@ export const typeDefs = gql`
     codenames: [codename] @relation(name: "IN_LANGUAGE", direction: IN)
   }
 
+  type project {
+    _id: Long!
+    name: String!
+    platform: String!
+    discourse_id: Int!
+  }
+
   type code {
     _id: Long!
     ancestry: String
@@ -151,21 +158,11 @@ export const typeDefs = gql`
     on_platform: [platform] @relation(name: "ON_PLATFORM", direction: OUT)
     has_parent_code: [code] @relation(name: "HAS_PARENT_CODE", direction: OUT)
     has_codename: [codename] @relation(name: "HAS_CODENAME", direction: OUT)
+    in_project: [project] @relation(name; "IN_PROJECT", direction: IN)
     cooccurs: [code] @relation(name: "COOCCURS", direction: OUT)
     COOCCURS_rel: [COOCCURS]
     annotations: [annotation] @relation(name: "REFERS_TO", direction: IN)
     users: [user] @relation(name: "USED_CODE", direction: IN)
-  }
-
-  type corpus_tag {
-    _id: Long!
-    created_at: String!
-    discourse_id: Int!
-    name: String!
-    platform: String!
-    topic_count: Int!
-    updated_at: String!
-    codes: [code] @relation(name: "IN_CORPUS", direction: IN)
   }
 
   type codename {
@@ -203,13 +200,6 @@ export const typeDefs = gql`
     url: String!
     codes: [code] @relation(name: "ON_PLATFORM", direction: IN)
     globalusers: [globaluser] @relation(name: "HAS_ACCOUNT_ON", direction: IN)
-    corpus: [corpus_tag]
-      @cypher(
-        statement: """
-        MATCH (this)<-[:ON_PLATFORM]-(:post)-[:IN_TOPIC]->()-[:TAGGED_WITH]->(corpus:corpus)
-        RETURN DISTINCT corpus
-        """
-      )
   }
 
   type TALKED_TO @relation(name: "TALKED_TO") {
@@ -277,17 +267,16 @@ export const resolvers = {
     ): Promise<any> => {
       const query = `
         CALL apoc.graph.fromCypher('
-          MATCH  (:platform {name: $platform})<-[:ON_PLATFORM]-(corpus:corpus {name: $corpora})
-          WITH corpus
+          MATCH  (:platform {name: $platform})<-[:ON_PLATFORM]-(project:project {name: $project})
+          WITH project
           MATCH
           p1=(post)-[:IN_TOPIC]->(topic),
           p2=(post)<-[:CREATED]-(user:user),
           p3=(user:user)-[:TALKED_OR_QUOTED*0..1]->(user2:user),
-          p4=(post)<-[:ANNOTATES*0..1]-(a:annotation)-[:REFERS_TO*0..1]->(c:code)-[:IN_CORPUS]->(corpus)
-          WHERE (topic)-[:TAGGED_WITH]->(corpus) AND
-                exists((user2)-[:CREATED]->()-[:IN_TOPIC]->()-[:TAGGED_WITH]->(corpus))
-          RETURN p1, p2, p3, p4, [(c)-[r:COOCCURS {corpus: $corpora}]->(c2) | [r, c2]]',
-          {corpora:$corpora, platform:$platform},
+          p4=(post)<-[:ANNOTATES*0..1]-(a:annotation)-[:REFERS_TO*0..1]->(c:code)-[:IN_PROJECT]->(project)
+          WHERE exists((user2)-[:CREATED]->()-[:IN_TOPIC]->()-[:TAGGED_WITH]->()<-[:IN_PROJECT]-(project))
+          RETURN p1, p2, p3, p4, [(c)-[r:COOCCURS {project: $project}]->(c2) | [r, c2]]',
+          {project:$project, platform:$platform},
           "",
           {}
         ) YIELD graph AS g
