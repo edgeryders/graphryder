@@ -16,3 +16,5 @@
 
 .bash_*
 .bashrc
+
+.DS_Store
