@@ -32,8 +32,8 @@ export type TableDataType = {
  * *************
  */
 const GRAPHQL_GET_GRAPH = gql`
-  query getGraphByCorpus($platform: String!, $corpora: String!) {
-    graph: getGraphByCorpus(platform: $platform, corpora: $corpora) {
+  query getGraphByProject($platform: String!, $project: String!) {
+    graph: getGraphByProject(platform: $platform, project: $project) {
       attributes
       nodes {
         key
@@ -49,11 +49,11 @@ const GRAPHQL_GET_GRAPH = gql`
   }
 `;
 
-export async function loadDataset(platform: string, corpora: string, state: QueryState): Promise<DatasetType> {
+export async function loadDataset(platform: string, project: string, state: QueryState): Promise<DatasetType> {
   // Construct the graph from the graphql query
   const result = await client.query({
     query: GRAPHQL_GET_GRAPH,
-    variables: { platform, corpora },
+    variables: { platform, project },
   });
   const graphReceived = new Graph({ multi: true, type: "directed", allowSelfLoops: true });
   graphReceived.import(cloneDeep(result.data.graph));

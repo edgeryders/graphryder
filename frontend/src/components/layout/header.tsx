@@ -3,19 +3,19 @@ import { Link } from "react-router-dom";
 
 interface Props {
   platform?: string;
-  corpus?: string;
+  project?: string;
 }
 
 export const Header: React.FC<Props> = (props: Props) => {
-  const { platform, corpus } = props;
+  const { platform, project } = props;
   return (
     <header className="sticky-top">
       <nav className="navbar navbar-dark head">
         <div id="brand">
           <Link id="go-home" to={"/"} title="go back to home page">
-            <b>RyderEx</b>
+            <b>Graphryder</b>
           </Link>{" "}
-          &gt; {platform} &gt; {corpus}
+          &gt; {platform} &gt; {project}
         </div>
       </nav>
     </header>

@@ -1,12 +1,12 @@
 import React from "react";
-import { CorpusSelection } from "./corpus/selection";
+import { ProjectSelection } from "./project/selection";
 
 export const Home: React.FC<{}> = () => {
   return (
     <div className="container home">
       <div>
-        <h1 className="head">RyderEx</h1>
-        <CorpusSelection />
+        <h1 className="head">Graphryder</h1>
+        <ProjectSelection />
       </div>
     </div>
   );

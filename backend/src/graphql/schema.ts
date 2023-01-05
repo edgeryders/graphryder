@@ -66,7 +66,6 @@ export const typeDefs = gql`
     topic_count: Int!
     updated_at: String!
     topics: [topic] @relation(name: "TAGGED_WITH", direction: IN)
-    codes: [code] @relation(name: "IN_CORPUS", direction: IN)
   }
 
   type category {
@@ -142,6 +141,7 @@ export const typeDefs = gql`
     name: String!
     platform: String!
     discourse_id: Int!
+    codes: [code] @relation(name: "IN_PROJECT", direction: IN)
   }
 
   type code {
@@ -158,7 +158,7 @@ export const typeDefs = gql`
     on_platform: [platform] @relation(name: "ON_PLATFORM", direction: OUT)
     has_parent_code: [code] @relation(name: "HAS_PARENT_CODE", direction: OUT)
     has_codename: [codename] @relation(name: "HAS_CODENAME", direction: OUT)
-    in_project: [project] @relation(name; "IN_PROJECT", direction: IN)
+    in_project: [project] @relation(name: "IN_PROJECT", direction: IN)
     cooccurs: [code] @relation(name: "COOCCURS", direction: OUT)
     COOCCURS_rel: [COOCCURS]
     annotations: [annotation] @relation(name: "REFERS_TO", direction: IN)
@@ -200,6 +200,13 @@ export const typeDefs = gql`
     url: String!
     codes: [code] @relation(name: "ON_PLATFORM", direction: IN)
     globalusers: [globaluser] @relation(name: "HAS_ACCOUNT_ON", direction: IN)
+    projects: [project]
+    @cypher(
+      statement: """
+      MATCH (this)<-[:ON_PLATFORM]-(:post)<-[:ANNOTATES]-()-[:REFERS_TO]->()-[:IN_PROJECT]->(project)
+      RETURN DISTINCT project
+      """
+    )
   }
 
   type TALKED_TO @relation(name: "TALKED_TO") {
@@ -223,7 +230,7 @@ export const typeDefs = gql`
   type COOCCURS @relation(name: "COOCCURS") {
     from: code!
     to: code!
-    corpus: String!
+    project: String!
     count: Int!
   }
 
@@ -253,28 +260,28 @@ export const typeDefs = gql`
   }
 
   type Query {
-    getGraphByCorpus(platform: String!, corpora: String!): Graph
+    getGraphByProject(platform: String!, project: String!): Graph
   }
 `;
 
 export const resolvers = {
   Query: {
-    getGraphByCorpus: async (
+    getGraphByProject: async (
       parent: GraphQLObjectType,
-      params: { platform: string; corpora: string },
+      params: { platform: string; project: string },
       ctx: ResolverContext,
       resolverInfo: GraphQLResolveInfo,
     ): Promise<any> => {
       const query = `
         CALL apoc.graph.fromCypher('
-          MATCH  (:platform {name: $platform})<-[:ON_PLATFORM]-(project:project {name: $project})
-          WITH project
+          MATCH  (:platform {name: $platform})<-[:ON_PLATFORM]-(proj:project {name: $project})
+          WITH proj
           MATCH
           p1=(post)-[:IN_TOPIC]->(topic),
           p2=(post)<-[:CREATED]-(user:user),
           p3=(user:user)-[:TALKED_OR_QUOTED*0..1]->(user2:user),
-          p4=(post)<-[:ANNOTATES*0..1]-(a:annotation)-[:REFERS_TO*0..1]->(c:code)-[:IN_PROJECT]->(project)
-          WHERE exists((user2)-[:CREATED]->()-[:IN_TOPIC]->()-[:TAGGED_WITH]->()<-[:IN_PROJECT]-(project))
+          p4=(post)<-[:ANNOTATES*0..1]-(a:annotation)-[:REFERS_TO*0..1]->(c:code)-[:IN_PROJECT]->(proj)
+          WHERE exists((user2)-[:CREATED]->()<-[:ANNOTATES]-()-[:REFERS_TO]->()-[:IN_PROJECT]->(proj))
           RETURN p1, p2, p3, p4, [(c)-[r:COOCCURS {project: $project}]->(c2) | [r, c2]]',
           {project:$project, platform:$platform},
           "",
@@ -284,7 +291,7 @@ export const resolvers = {
       log.info(`Asking graph for ${JSON.stringify(params)}`);
       const graph = await cypherToGraph(ctx, query, params);
       graph.setAttribute("platform", params.platform);
-      graph.setAttribute("corpora", params.corpora);
+      graph.setAttribute("project", params.project);
       log.info(`Returned computed graph`);
       return graph.export();
     },

@@ -26,7 +26,7 @@ const config: ConfigType = {
           generateFromNode: (graph, node): number => {
             let nb_annotation = 0;
             graph.forEachOutEdgeUntil(node, (e, atts, source, target) => {
-              if (atts["@type"] === "IN_CORPUS") {
+              if (atts["@type"] === "IN_PROJECT") {
                 nb_annotation = atts.annotation_count;
                 return true;
               }

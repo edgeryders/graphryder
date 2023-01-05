@@ -1,7 +1,7 @@
 {
-  "name": "ryderex-frontend",
-  "version": "1.0.0",
-  "description": "Ryderex web application",
+  "name": "graphryder-frontend",
+  "version": "2.1.0",
+  "description": "Graphryder web application",
   "dependencies": {
     "@apollo/client": "^3.3.15",
     "@babel/core": "^7.12.3",

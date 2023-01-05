@@ -3,18 +3,18 @@ import gql from "graphql-tag";
 import { Link } from "react-router-dom";
 import { client } from "../../core/client";
 
-interface PlatformWithCorpus {
+interface PlatformWithProject {
   name: string;
   url: string;
-  corpus: Array<{ name: string }>;
+  projects: Array<{ name: string }>;
 }
 
-const GRAPHQL_GET_CORPUS = gql`
+const GRAPHQL_GET_PROJECT = gql`
   query {
     platform: platform {
       name
       url
-      corpus {
+      projects {
         name
       }
     }
@@ -23,34 +23,34 @@ const GRAPHQL_GET_CORPUS = gql`
 
 interface Props {
   platform?: string;
-  corpora?: string;
+  project?: string;
 }
-export const CorpusSelection: React.FC<Props> = ({ platform, corpora }) => {
+export const ProjectSelection: React.FC<Props> = ({ platform, project }) => {
   const [error, setError] = useState<Error | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [dataset, setDataset] = useState<Array<PlatformWithCorpus>>([]);
+  const [dataset, setDataset] = useState<Array<PlatformWithProject>>([]);
   // Is the drop-down for platform is opened ?
   const [showPlatformDropDown, setShowPlatformDropDown] = useState<boolean>(false);
-  const [showCorporaDropDown, setShowCorporaDropDown] = useState<boolean>(false);
+  const [showProjectDropDown, setShowProjectDropDown] = useState<boolean>(false);
   // The select items
-  const [selectedPlatform, setPlatform] = useState<PlatformWithCorpus | null>(null);
-  const [selectedCorpora, setCorpora] = useState<string | null>(null);
+  const [selectedPlatform, setPlatform] = useState<PlatformWithProject | null>(null);
+  const [selectedProject, setProject] = useState<string | null>(null);
 
   useEffect(() => {
     // Load the data
     setIsLoading(true);
     client
       .query({
-        query: GRAPHQL_GET_CORPUS,
+        query: GRAPHQL_GET_PROJECT,
         variables: {},
       })
       .then((result) => {
         setDataset(result.data.platform);
         if (platform) {
-          const sPlatform = result.data.platform.find((i: PlatformWithCorpus) => i.name === platform);
+          const sPlatform = result.data.platform.find((i: PlatformWithProject) => i.name === platform);
           setPlatform(sPlatform);
-          if (corpora && sPlatform && sPlatform.corpus.find((i: { name: string }) => i.name === corpora)) {
-            setCorpora(corpora);
+          if (project && sPlatform && sPlatform.projects.find((i: { name: string }) => i.name === project)) {
+            setProject(project);
           }
         }
       })
@@ -61,23 +61,23 @@ export const CorpusSelection: React.FC<Props> = ({ platform, corpora }) => {
 
     const hideDropDown = () => {
       setShowPlatformDropDown(false);
-      setShowCorporaDropDown(false);
+      setShowProjectDropDown(false);
     };
     document.addEventListener("click", hideDropDown);
 
     return () => {
       document.removeEventListener("click", hideDropDown);
     };
-  }, [platform, corpora]);
+  }, [platform, project]);
 
   return (
-    <div className="platform-corpus-selection p-3 shadow-sm mb-3">
+    <div className="platform-project-selection p-3 shadow-sm mb-3">
       <div className="container-fluid">
         <div className="row">
           <div className="d-flex flex-column">
             <div>
-              Choose a Edgeryders Communities platform and corpus to explore its posts, annotations and participants.
-              <br />A corpus is a thematic collection of conversations (posts created by participants on topics) which
+              Choose a Edgeryders Communities platform and project to explore its posts, annotations and participants.
+              <br />A project is a thematic collection of conversations (posts created by participants on topics) which
               has been annotated with qualitative codes.
             </div>
             <div className="d-flex align-items-center mt-2">
@@ -100,7 +100,7 @@ export const CorpusSelection: React.FC<Props> = ({ platform, corpora }) => {
                         onClick={() => {
                           if (selectedPlatform !== item) {
                             setPlatform(item);
-                            setCorpora(null);
+                            setProject(null);
                           }
                         }}
                       >
@@ -114,27 +114,27 @@ export const CorpusSelection: React.FC<Props> = ({ platform, corpora }) => {
           </div>
 
           <div className="d-flex align-items-center">
-            <span className="fw-bolder m-3">&nbsp;&nbsp;Corpus</span>
+            <span className="fw-bolder m-3">&nbsp;&nbsp;Project</span>
             <div className="dropdown">
               <button
                 className="btn btn-secondary dropdown-toggle"
                 onClick={(e) => {
-                  setShowCorporaDropDown(!showCorporaDropDown);
+                  setShowProjectDropDown(!showProjectDropDown);
                   e.stopPropagation();
                 }}
-                disabled={!selectedPlatform || selectedPlatform.corpus.length === 0}
+                disabled={!selectedPlatform || selectedPlatform.projects.length === 0}
               >
-                {selectedCorpora ? selectedCorpora : "Select a corpus"}
+                {selectedProject ? selectedProject : "Select a project"}
               </button>
               {selectedPlatform && (
-                <ul className={`dropdown-menu ${showCorporaDropDown ? "show" : ""}`}>
-                  {selectedPlatform.corpus.map((item) => (
+                <ul className={`dropdown-menu ${showProjectDropDown ? "show" : ""}`}>
+                  {selectedPlatform.projects.map((item) => (
                     <li key={item.name}>
                       <button
                         className="dropdown-item"
                         onClick={() => {
-                          if (selectedCorpora !== item.name) {
-                            setCorpora(item.name);
+                          if (selectedProject !== item.name) {
+                            setProject(item.name);
                           }
                         }}
                       >
@@ -147,11 +147,11 @@ export const CorpusSelection: React.FC<Props> = ({ platform, corpora }) => {
             </div>
             <div className="ms-5">
               <Link
-                className={`btn btn-primary ${!selectedCorpora ? "disabled" : ""}`}
-                to={`/dashboard/${selectedPlatform?.name}/${selectedCorpora}`}
+                className={`btn btn-primary ${!selectedProject ? "disabled" : ""}`}
+                to={`/dashboard/${selectedPlatform?.name}/${selectedProject}`}
                 title="Load data"
               >
-                Load Corpus
+                Load Project
               </Link>
             </div>
           </div>

@@ -1,7 +1,7 @@
 import React, { FC, ReactElement, useEffect, useState } from "react";
 import { useLocation, useHistory } from "react-router-dom";
 
-import { ScopeBox, Stats } from "./corpus/stats";
+import { ScopeBox, Stats } from "./project/stats";
 import { queryToState, stateToQueryString } from "../core/queryState";
 import { Modules, ModuleType } from "../core/modules";
 import { applyScopeOnGraph, DatasetType, loadDataset } from "../core/data";
@@ -13,7 +13,7 @@ import { NetworkProps } from "./dashboard/network";
 import { TableProps } from "./dashboard/table";
 import { sortBy } from "lodash";
 
-export const Dashboard: FC<{ platform: string; corpus: string }> = ({ platform, corpus }) => {
+export const Dashboard: FC<{ platform: string; project: string }> = ({ platform, project }) => {
   const location = useLocation();
   const history = useHistory();
   //TODO put this in a useEffect ?
@@ -31,7 +31,7 @@ export const Dashboard: FC<{ platform: string; corpus: string }> = ({ platform, 
   useEffect(() => {
     if (!isLoading) {
       setIsLoading(true);
-      loadDataset(platform, corpus, queryState)
+      loadDataset(platform, project, queryState)
         .then((dataset) => setDataset(dataset))
         .catch((err) => {
           console.error(error);
@@ -40,7 +40,7 @@ export const Dashboard: FC<{ platform: string; corpus: string }> = ({ platform, 
         .finally(() => setIsLoading(false));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [platform, corpus]);
+  }, [platform, project]);
 
   // add a useEffect to apply scope when queryState change
   useEffect(() => {
@@ -57,7 +57,7 @@ export const Dashboard: FC<{ platform: string; corpus: string }> = ({ platform, 
 
   return (
     <>
-      <Header platform={platform} corpus={corpus} />
+      <Header platform={platform} project={project} />
       <div className="container-fluid">
         {isLoading && <Loader />}
         {!isLoading && error && (

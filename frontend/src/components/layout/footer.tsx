@@ -5,7 +5,7 @@ export const Footer: React.FC = () => {
   return (
     <footer>
       <div className="container-fluid d-flex justify-content-center">
-        <span>&copy;Ryderex - v{packageJson.version}</span>
+        <span>&copy;Graphryder - v{packageJson.version}</span>
       </div>
     </footer>
   );
